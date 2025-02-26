@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+    rel="stylesheet"
+  >
+  <title>Project 3</title>
+</head>
+
+<body>
+  <header>
+    <h1>Recipe Library</h1>
+  </header>
+
+  <main>
+    <section class="filter-sort-container">
+      <div class="recipe-filter-section">
+        <h2>Filter by Cuisine</h2>
+        <ul>
+          <li>
+            <input
+              type="radio"
+              id="filter1"
+              name="filter"
+            />
+            <label for="filter1">Mediterranean</label>
+          </li>
+          <li>
+            <input
+              type="radio"
+              id="filter2"
+              name="filter"
+            />
+            <label for="filter2">Middle Eastern</label>
+          </li>
+          <li>
+            <input
+              type="radio"
+              id="filter3"
+              name="filter"
+            />
+            <label for="filter3">Asian</label>
+          </li>
+          <li>
+            <input
+              type="radio"
+              id="filter4"
+              name="filter"
+            />
+            <label for="filter4">Italian</label>
+          </li>
+          <li>
+            <input
+              type="radio"
+              id="filter5"
+              name="filter"
+            />
+            <label for="filter5">Mexican</label>
+          </li>
+        </ul>
+      </div>
+
+      <div class="recipe-sort-section">
+        <h2>Sort by</h2>
+        <ul>
+          <li>
+            <input
+              type="radio"
+              id="sort1"
+              name="sort"
+            />
+            <label for="sort1">Most Popular Recipes</label>
+          </li>
+          <li>
+            <input
+              type="radio"
+              id="sort2"
+              name="sort"
+            />
+            <label for="sort2">Shortest Cooking Time</label>
+          </li>
+          <li>
+            <input
+              type="radio"
+              id="sort3"
+              name="sort"
+            />
+            <label for="sort3">Fewest Ingredients</label>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="recipe-card-section">
+      <article class="recipe-card">
+        <div class="recipe-content">
+          <div class="recipe-data">
+            <div class="recipe-media">
+              <img
+                src="img/ella-olsson-mmnKI8kMxpc-unsplash.jpg"
+                alt=""
+              >
+            </div>
+            <h3>Rubrik på Recept</h3>
+            <hr>
+            <div class="recipe-info">
+              <p><b>Cuisine:</b> Italian</p>
+              <p><b>Time:</b> 30 minutes</p>
+              <hr>
+            </div>
+            <div class="recipe-ingredients">
+              <ul>
+                <p><b>Ingredients</b></p>
+                <li>Bananer</li>
+                <li>Bananer</li>
+                <li>Bananer</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </article>
+      <article class="recipe-card">
+        <div class="recipe-content">
+          <div class="recipe-data">
+            <h3>Rubrik på Recept</h3>
+            <hr>
+            <div class="recipe-info"></div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+
+</html>
