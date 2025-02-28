@@ -1,5 +1,5 @@
 body {
-  font-family: nunito;
+  font-family: futura;
   margin: 16px;
 }
 
@@ -18,7 +18,7 @@ h1 {
 }
 
 h2 {
-  font-size: 22px;
+  font-size: 24px;
   margin: 16px 0;
 }
 
@@ -84,7 +84,6 @@ li {
   background: #0018A4;
   color: white;
   border-color: #0018A4;
-
 }
 
 
