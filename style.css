@@ -56,7 +56,8 @@ li {
   cursor: pointer;
 }
 
-.filter-sort-container input[type="radio"] {
+.filter-sort-container input[type="radio"],
+.filter-sort-container input[type="checkbox"] {
   opacity: 0;
   position: fixed;
   width: 0;
@@ -73,14 +74,14 @@ li {
   border: 2px solid #CCFFE2;
 }
 
-.recipe-filter-section input[type="radio"]:hover+label {
+.recipe-filter-section input[type="checkbox"]:hover+label {
   background: #0018A4;
   color: white;
   border-color: #FF6589;
 
 }
 
-.recipe-filter-section input[type="radio"]:checked+label {
+.recipe-filter-section input[type="checkbox"]:checked+label {
   background: #0018A4;
   color: white;
   border-color: #0018A4;
