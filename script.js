@@ -162,9 +162,8 @@ const recipe = [
 ]
 
 const recipeSection = document.querySelector('.recipe-card-section');
-// const filterCheckboxes = Array.from(document.querySelectorAll('input[name="filter"]:checked')).map(input => input.id);
-
 const filterCheckboxes = document.querySelectorAll('input[name="filter"]');
+const sortRadioButtons = document.querySelectorAll('input[name="sort"]');
 
 
 // Ladda recept
@@ -194,31 +193,51 @@ const loadRecipes = (recipeArrays) => {
         </div>
       </div>
       </article>
-      `
-  })
-}
+      `;
+  });
+};
 
 // Filtrera recept baserat på ikryssade val
 const filterRecipe = () => {
   const selectedFilters = Array.from(filterCheckboxes)
     .filter(checkbox => checkbox.checked)
-    .map(checkbox => checkbox.value)
+    .map(checkbox => checkbox.value);
 
-  if (selectedFilters.length === 0) {
-    loadRecipes(recipe);
-    return;
+  let filteredArray = recipe;
+
+  if (selectedFilters.length > 0) {
+    filteredArray = recipe.filter(recipe => {
+      return selectedFilters.some(filter => recipe.cuisine.includes(filter));
+    });
   }
 
-  const filteredArray = recipe.filter(recipe => {
-    return selectedFilters.some(filter => recipe.cuisine.includes(filter));
-  });
-
-  console.log('Heey:', filteredArray)
-  loadRecipes(filteredArray)
+  sortRecipe(filteredArray); // Efter filtrering, sortera recepten
 };
 
+// Sortera recept baserat på vald radioknapp
+const sortRecipe = (filteredArray) => {
+  const selectedSort = Array.from(sortRadioButtons).find(radioButton => radioButton.checked);
+
+  if (selectedSort) {
+    const sortMap = {
+      mostPopularRecipes: (a, b) => b.popularity - a.popularity, // Sortera efter popularitet
+      shortestCookingTime: (a, b) => a.readyInMinutes - b.readyInMinutes, // Sortera efter tid
+      fewestIngredients: (a, b) => a.ingredients.length - b.ingredients.length, // Sortera efter antal ingredienser
+    };
+
+    filteredArray.sort(sortMap[selectedSort.value]); // Använd rätt sorteringsfunktion
+  }
+
+  loadRecipes(filteredArray); // Ladda de filtrerade och sorterade recepten
+};
+
+// Event-lyssnare för filter och sortering
 filterCheckboxes.forEach(checkbox => {
   checkbox.addEventListener('change', filterRecipe);
 });
 
-loadRecipes(recipe)
+sortRadioButtons.forEach(radioButton => {
+  radioButton.addEventListener('change', () => filterRecipe()); // Om sortering ändras, återställ filtreringen
+});
+
+loadRecipes(recipe); // Ladda alla recept initialt
