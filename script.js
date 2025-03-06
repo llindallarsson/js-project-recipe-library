@@ -162,17 +162,25 @@ const recipe = [
 ]
 
 const recipeSection = document.querySelector('.recipe-card-section');
+const recipeCount = document.querySelector('.recipe-count');
 const filterCheckboxes = document.querySelectorAll('input[name="filter"]');
 const sortRadioButtons = document.querySelectorAll('input[name="sort"]');
 const randomRecipeButton = document.querySelector('.random-recipe-button');
 
+
 // Ladda recept
 const loadRecipes = (recipeArrays) => {
-  recipeSection.innerHTML = ' '
-  recipeArrays.forEach(recipe => {
-    recipeSection.innerHTML += ` 
+  recipeSection.innerHTML = ' ';
+  updateRecipeCount(recipeArrays.length);
+
+  if (recipeArrays.length === 0) {
+    recipeSection.innerHTML = '<p> No recipes match your criteria.</p>';
+  } else {
+    recipeArrays.forEach(recipe => {
+      recipeSection.innerHTML += ` 
     <article class="recipe-card">
     <div class="recipe-content">
+
         <div class="recipe-data">
           <div class="recipe-media">
             <img src="${recipe.image}" alt="${recipe.title}">
@@ -194,7 +202,12 @@ const loadRecipes = (recipeArrays) => {
       </div>
       </article>
       `;
-  });
+    });
+  }
+};
+
+const updateRecipeCount = (count) => {
+  recipeCount.innerHTML = `Recipes (${count})`
 };
 
 // Filtrera recept baserat på ikryssade val
@@ -244,10 +257,10 @@ sortRadioButtons.forEach(radioButton => {
 const ShowRandomRecipe = () => {
   const randomIndex = Math.floor(Math.random() * recipe.length);
   const randomRecipe = recipe[randomIndex];
-  console.log(randomRecipe);
   loadRecipes([randomRecipe]);
 }
 
 randomRecipeButton.addEventListener('click', ShowRandomRecipe)
+
 
 loadRecipes(recipe); // Ladda alla recept initialt
