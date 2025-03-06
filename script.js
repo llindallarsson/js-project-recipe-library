@@ -164,7 +164,7 @@ const recipe = [
 const recipeSection = document.querySelector('.recipe-card-section');
 const filterCheckboxes = document.querySelectorAll('input[name="filter"]');
 const sortRadioButtons = document.querySelectorAll('input[name="sort"]');
-
+const randomRecipeButton = document.querySelector('.random-recipe-button');
 
 // Ladda recept
 const loadRecipes = (recipeArrays) => {
@@ -239,5 +239,15 @@ filterCheckboxes.forEach(checkbox => {
 sortRadioButtons.forEach(radioButton => {
   radioButton.addEventListener('change', () => filterRecipe()); // Om sortering ändras, återställ filtreringen
 });
+
+// Random recipe
+const ShowRandomRecipe = () => {
+  const randomIndex = Math.floor(Math.random() * recipe.length);
+  const randomRecipe = recipe[randomIndex];
+  console.log(randomRecipe);
+  loadRecipes([randomRecipe]);
+}
+
+randomRecipeButton.addEventListener('click', ShowRandomRecipe)
 
 loadRecipes(recipe); // Ladda alla recept initialt
