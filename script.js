@@ -162,8 +162,12 @@ const recipe = [
 ]
 
 const recipeSection = document.querySelector('.recipe-card-section');
+// const filterCheckboxes = Array.from(document.querySelectorAll('input[name="filter"]:checked')).map(input => input.id);
+
 const filterCheckboxes = document.querySelectorAll('input[name="filter"]');
 
+
+// Ladda recept
 const loadRecipes = (recipeArrays) => {
   recipeSection.innerHTML = ' '
   recipeArrays.forEach(recipe => {
@@ -184,7 +188,7 @@ const loadRecipes = (recipeArrays) => {
           <div class="recipe-ingredients">
             <ul>
               <p><b>Ingredients</b></p>
-              ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')}
+              ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')} 
             </ul>
           </div>
         </div>
@@ -194,7 +198,27 @@ const loadRecipes = (recipeArrays) => {
   })
 }
 
-// const filterRecipe = () => {
-//   const filterCusine
-// }
+// Filtrera recept baserat på ikryssade val
+const filterRecipe = () => {
+  const selectedFilters = Array.from(filterCheckboxes)
+    .filter(checkbox => checkbox.checked)
+    .map(checkbox => checkbox.value)
+
+  if (selectedFilters.length === 0) {
+    loadRecipes(recipe);
+    return;
+  }
+
+  const filteredArray = recipe.filter(recipe => {
+    return selectedFilters.some(filter => recipe.cuisine.includes(filter));
+  });
+
+  console.log('Heey:', filteredArray)
+  loadRecipes(filteredArray)
+};
+
+filterCheckboxes.forEach(checkbox => {
+  checkbox.addEventListener('change', filterRecipe);
+});
+
 loadRecipes(recipe)
