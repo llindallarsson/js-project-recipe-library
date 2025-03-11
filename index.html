@@ -21,21 +21,17 @@
 
   <main>
     <h2>Find your recipe</h2>
-    <button
-      class="random-recipe-button"
-      id="random-recipe-button"
-    >Suprise me</button>
 
-    <form>
-      <div class="multiselect">
-        <div
-          class="select-box"
-          onclick="showCheckboxes()"
-        >
-          <select>
-            <option>Filter by cuisine</option>
-          </select>
-          <!-- <div class="overSelect"></div>
+    <section class="fs-container">
+      <div
+        class="select-box"
+        onclick="
+        showCheckboxes()"
+      >
+        <select class="select-option">
+          <option>Filter by cuisine</option>
+        </select>
+        <!-- <div class="overSelect"></div>
         </div>
         <div id="checkboxes">
           <label for="one">
@@ -57,26 +53,24 @@
             > Nummer 3
           </label>
         </div> -->
-        </div>
-    </form>
-
-    <form action="">
-      <div>
-        <div>
-          <select
-            name=""
-            id=""
-          >
-            <option value="brown">Sort by</option>
-            <option value="black">Black</option>
-            <option value="grey">Grey</option>
-            <option value="all">All</option>
-          </select>
-        </div>
-
       </div>
-    </form>
-
+      <div>
+        <select
+          name=""
+          id=""
+          class="select-option"
+        >
+          <option value="brown">Sort by</option>
+          <option value="black">Black</option>
+          <option value="grey">Grey</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+      <button
+        class="random-recipe-button select-option"
+        id="random-recipe-button"
+      >Suprise me</button>
+    </section>
 
 
     <section class="filter-sort-container">
@@ -184,34 +178,9 @@
     </section>
     <h3 class="recipe-count"></h3>
     <section class="recipe-card-section">
-      <!-- <article class="recipe-card">
-        <div class="recipe-content">
-          <div class="recipe-data">
-            <div class="recipe-media">
-              <img
-                src=""
-                alt=""
-              >
-            </div>
-            <h3></h3>
-            <hr>
-            <div class="recipe-info">
-              <p><b>Cuisine:</b></p>
-              <p><b>Time:</b></p>
-              <hr>
-            </div>
-            <div class="recipe-ingredients">
-              <ul>
-                <p><b>Ingredients</b></p>
-                <li></li>
-              </ul>
-            </div>
-          </div>
-        </div> -->
-      </article>
     </section>
   </main>
-  <script src="./script.js"> </script>
+  <script src="./script2.js"> </script>
 </body>
 
 </html>
