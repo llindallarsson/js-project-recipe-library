@@ -19,20 +19,18 @@ const fetchRecipes = () => {
       return response.json();
     })
     .then((data) => {
-      allRecipes = data.results;
+      allRecipes = data.results.map(recipe => {
+        const availableFilters = ["Mediterranean", "Middle Eastern", "Asian", "Italian", "Mexican", "European"];
+        // Find the first matching cuisine or an empty string if there are no matches
+        const firstMatchingCuisine = findFirstMatchingCuisine(recipe.cuisines, availableFilters);
+        return { ...recipe, firstMatchingCuisine };
+      });
       console.log('all data', allRecipes);
-      displayInitialRecipes(allRecipes); // Display initial recipes
+      displayFilteredSortedRecipes(allRecipes);
     })
     .catch((error) => {
       console.error('Error fetching recipes:', error);
     });
-};
-
-// Function to display the initial 7 recipes
-const displayInitialRecipes = (recipes) => {
-  const initialRecipes = recipes.slice(0, 7);
-  createRecipeCard(initialRecipes);
-  updateRecipeCount(initialRecipes.length);
 };
 
 const createRecipeCard = (recipeArray) => {
@@ -41,6 +39,13 @@ const createRecipeCard = (recipeArray) => {
   recipeArray.forEach(recipe => {
     const article = document.createElement('article');
     article.classList.add('recipe-card');
+
+    // Find the first matching cuisine or an empty string if there are no matches
+    const selectedFilters = Array.from(filterCheckboxes)
+      .filter(checkbox => checkbox.checked)
+      .map(checkbox => checkbox.value);
+
+    const firstMatchingCuisine = findFirstMatchingCuisine(recipe.cuisines, selectedFilters);
 
     article.innerHTML = `
   <div class="recipe-content">
@@ -51,7 +56,7 @@ const createRecipeCard = (recipeArray) => {
       <h3>${recipe.title}</h3>
       <hr>
       <div class="recipe-info">
-            <p><b>Cuisine:</b> ${recipe.pricePerServing}kr</p>
+            <p><b>Cuisine:</b> ${firstMatchingCuisine}</p>
             <p><b>Time:</b> ${recipe.readyInMinutes} minutes</p>
       </div>
     </div>
@@ -77,9 +82,11 @@ const filterRecipes = () => {
 
   let filteredRecipes = allRecipes;
   if (selectedFilters.length > 0) {
-    filteredRecipes = allRecipes.filter(recipe =>
-      selectedFilters.some(filter => recipe.cuisines.includes(filter))
-    );
+    filteredRecipes = allRecipes.filter(recipe => {
+      return recipe.cuisines.some(cuisine => selectedFilters.includes(cuisine));
+    });
+  } else {
+    filteredRecipes = allRecipes;
   }
   return filteredRecipes;
 };
@@ -106,9 +113,8 @@ const sortRecipes = (recipes) => {
 const displayFilteredSortedRecipes = (recipes) => {
   const filteredRecipes = filterRecipes();
   const sortedRecipes = sortRecipes(filteredRecipes);
-  const recipesToDisplay = sortedRecipes.slice(0, 7);
-  createRecipeCard(recipesToDisplay);
-  updateRecipeCount(recipesToDisplay.length);
+  createRecipeCard(sortedRecipes); // Display all recipes
+  updateRecipeCount(sortedRecipes.length);
 };
 
 // Event listeners
@@ -122,13 +128,47 @@ sortRadioButtons.forEach(radioButton => {
 
 // Random recipe
 const ShowRandomRecipe = () => {
-  const randomIndex = Math.floor(Math.random() * allRecipes.length);
-  const randomRecipe = allRecipes[randomIndex];
+  const availableFilters = ["Mediterranean", "Middle Eastern", "Asian", "Italian", "Mexican", "European"];
+
+  // Filter recipes that have a matching cuisine
+  const filteredRecipes = allRecipes.filter(recipe => recipe.firstMatchingCuisine !== '');
+
+  if (filteredRecipes.length === 0) {
+    console.log("No recipes with matching cuisines found.");
+    return; // Exit if no matching recipes are found
+  }
+
+  const randomIndex = Math.floor(Math.random() * filteredRecipes.length);
+  const randomRecipe = filteredRecipes[randomIndex];
   createRecipeCard([randomRecipe]);
   updateRecipeCount(1);
 }
 
 randomRecipeButton.addEventListener('click', ShowRandomRecipe);
+// Helper function to find the first matching cuisine
+const findFirstMatchingCuisine = (recipeCuisines, selectedFilters) => {
+  const availableFilters = ["Mediterranean", "Middle Eastern", "Asian", "Italian", "Mexican", "European"];
+  if (!recipeCuisines || recipeCuisines.length === 0) {
+    return ''; // Return empty string if no cuisines
+  }
+
+  if (selectedFilters.length === 0) {
+    for (const cuisine of recipeCuisines) {
+      if (availableFilters.includes(cuisine)) {
+        return cuisine; // Return the first cuisine that matches an available filter
+      }
+    }
+    return ''; // Return empty string if no cuisine matches an available filter
+  }
+
+  for (const cuisine of recipeCuisines) {
+    if (selectedFilters.includes(cuisine)) {
+      return cuisine; // Return the first matching cuisine
+    }
+  }
+
+  return ''; // Return empty string if no matching cuisine is found
+};
 
 displayFilteredSortedRecipes(allRecipes)
 fetchRecipes();
