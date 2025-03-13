@@ -6,31 +6,60 @@ const randomRecipeButton = document.querySelector('.random-recipe-button');
 
 const apiKey = 'd003d333cdad4f2ab6b218a0b87d79f2';
 const baseURL = 'https://api.spoonacular.com/recipes/complexSearch';
+const localStorageKey = 'recipeLibraryCache'; // Key for local storage
+const availableFilters = ["Mediterranean", "Middle Eastern", "Asian", "Italian", "Mexican", "European"];
 
 let allRecipes = [];
 
+// Helper function to find the first matching cuisine
+const findFirstMatchingCuisine = (recipeCuisines) => {
+  if (!recipeCuisines || recipeCuisines.length === 0) {
+    return ''; // Return empty string if no cuisines
+  }
+
+  for (const cuisine of recipeCuisines) {
+    if (availableFilters.includes(cuisine)) {
+      return cuisine; // Return the first cuisine that matches an available filter
+    }
+  }
+  return ''; // Return empty string if no cuisine matches an available filter
+};
+
 const fetchRecipes = () => {
-  const url = `${baseURL}?number=100&apiKey=${apiKey}&instructionsRequired=true&addRecipeInformation=true&cuisine=Mediterranean,Middle Eastern,Asian,Italian,Mexican,European`;
-  fetch(url)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`API request failed with status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      allRecipes = data.results.map(recipe => {
-        const availableFilters = ["Mediterranean", "Middle Eastern", "Asian", "Italian", "Mexican", "European"];
-        // Find the first matching cuisine or an empty string if there are no matches
-        const firstMatchingCuisine = findFirstMatchingCuisine(recipe.cuisines, availableFilters);
-        return { ...recipe, firstMatchingCuisine };
+  const cachedRecipes = localStorage.getItem(localStorageKey);
+
+  if (cachedRecipes) {
+    // If data is in local storage, use it
+    allRecipes = JSON.parse(cachedRecipes);
+    console.log('Recipes loaded from cache');
+    console.log('Cached Recipes:', allRecipes); // Log the cached data
+    displayFilteredSortedRecipes(allRecipes);
+  } else {
+    // If data is not in local storage, fetch from API
+    const url = `${baseURL}?number=100&apiKey=${apiKey}&instructionsRequired=true&addRecipeInformation=true&cuisine=Mediterranean,Middle Eastern,Asian,Italian,Mexican,European`;
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`API request failed with status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        allRecipes = data.results.map(recipe => {
+          // Find the first matching cuisine or an empty string if there are no matches
+          const firstMatchingCuisine = findFirstMatchingCuisine(recipe.cuisines);
+          return { ...recipe, firstMatchingCuisine, isLiked: false }; // Add isLiked property
+        });
+        console.log('Recipes loaded from API');
+        // Store the data in local storage
+        localStorage.setItem(localStorageKey, JSON.stringify(allRecipes));
+        console.log('Recipes stored in cache:', allRecipes); // Log the data being stored
+        displayFilteredSortedRecipes(allRecipes);
+      })
+      .catch((error) => {
+        console.error('Error fetching recipes:', error);
       });
-      console.log('all data', allRecipes);
-      displayFilteredSortedRecipes(allRecipes);
-    })
-    .catch((error) => {
-      console.error('Error fetching recipes:', error);
-    });
+  }
 };
 
 const createRecipeCard = (recipeArray) => {
@@ -40,12 +69,7 @@ const createRecipeCard = (recipeArray) => {
     const article = document.createElement('article');
     article.classList.add('recipe-card');
 
-    // Find the first matching cuisine or an empty string if there are no matches
-    const selectedFilters = Array.from(filterCheckboxes)
-      .filter(checkbox => checkbox.checked)
-      .map(checkbox => checkbox.value);
-
-    const firstMatchingCuisine = findFirstMatchingCuisine(recipe.cuisines, selectedFilters);
+    const isFilled = recipe.isLiked ? 'filled' : ''; // Determine if the heart should be filled
 
     article.innerHTML = `
   <div class="recipe-content">
@@ -56,8 +80,12 @@ const createRecipeCard = (recipeArray) => {
       <h3>${recipe.title}</h3>
       <hr>
       <div class="recipe-info">
-            <p><b>Cuisine:</b> ${firstMatchingCuisine}</p>
+            <p><b>Cuisine:</b> ${recipe.firstMatchingCuisine}</p>
             <p><b>Time:</b> ${recipe.readyInMinutes} minutes</p>
+      </div>
+      <div class="like-container">
+              <span class="material-symbols-outlined like-button ${isFilled}">favorite</span>
+              <p class="like-count">${recipe.aggregateLikes} likes</p>
       </div>
     </div>
   </div>
@@ -68,6 +96,14 @@ const createRecipeCard = (recipeArray) => {
 
   recipeSection.innerHTML = '';
   recipeSection.appendChild(fragment);
+
+  // Add event listeners to like buttons after they are created
+  const likeButtons = document.querySelectorAll('.like-button');
+  likeButtons.forEach((button, index) => {
+    button.addEventListener('click', () => {
+      handleLikeClick(index);
+    });
+  });
 };
 
 const updateRecipeCount = (count) => {
@@ -128,8 +164,6 @@ sortRadioButtons.forEach(radioButton => {
 
 // Random recipe
 const ShowRandomRecipe = () => {
-  const availableFilters = ["Mediterranean", "Middle Eastern", "Asian", "Italian", "Mexican", "European"];
-
   // Filter recipes that have a matching cuisine
   const filteredRecipes = allRecipes.filter(recipe => recipe.firstMatchingCuisine !== '');
 
@@ -145,30 +179,27 @@ const ShowRandomRecipe = () => {
 }
 
 randomRecipeButton.addEventListener('click', ShowRandomRecipe);
-// Helper function to find the first matching cuisine
-const findFirstMatchingCuisine = (recipeCuisines, selectedFilters) => {
-  const availableFilters = ["Mediterranean", "Middle Eastern", "Asian", "Italian", "Mexican", "European"];
-  if (!recipeCuisines || recipeCuisines.length === 0) {
-    return ''; // Return empty string if no cuisines
+
+// Function to handle like button clicks
+const handleLikeClick = (recipeIndex) => {
+  const recipe = allRecipes[recipeIndex];
+  const likeButton = document.querySelectorAll('.like-button')[recipeIndex];
+  const likeCountElement = document.querySelectorAll('.like-count')[recipeIndex];
+
+  if (recipe.isLiked) {
+    recipe.aggregateLikes--; // Decrement the like count
+    likeButton.classList.remove('filled'); // Remove the filled class
+  } else {
+    recipe.aggregateLikes++; // Increment the like count
+    likeButton.classList.add('filled'); // Add the filled class
   }
 
-  if (selectedFilters.length === 0) {
-    for (const cuisine of recipeCuisines) {
-      if (availableFilters.includes(cuisine)) {
-        return cuisine; // Return the first cuisine that matches an available filter
-      }
-    }
-    return ''; // Return empty string if no cuisine matches an available filter
-  }
+  recipe.isLiked = !recipe.isLiked; // Toggle the isLiked state
 
-  for (const cuisine of recipeCuisines) {
-    if (selectedFilters.includes(cuisine)) {
-      return cuisine; // Return the first matching cuisine
-    }
-  }
+  likeCountElement.textContent = `${recipe.aggregateLikes} likes`; // Update the like count in the UI
 
-  return ''; // Return empty string if no matching cuisine is found
+  // Update local storage
+  localStorage.setItem(localStorageKey, JSON.stringify(allRecipes));
 };
 
-displayFilteredSortedRecipes(allRecipes)
 fetchRecipes();

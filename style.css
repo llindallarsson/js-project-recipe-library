@@ -175,3 +175,22 @@ button {
   padding: 16px;
   font-family: futura;
 }
+
+
+.like-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.like-button {
+  background: rgba(0, 24, 164, 0.2);
+  color: #0018A4;
+  border-radius: 100%;
+  padding: 8px;
+}
+
+.like-button.filled {
+  font-variation-settings: 'FILL' 1;
+}
