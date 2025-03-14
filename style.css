@@ -164,16 +164,24 @@ li {
   gap: 16px
 }
 
-.fs-container select,
-button {
+.fs-container button {
+  background: #CCFFE2;
   border: 2px solid #0018A4;
   border-radius: 5px;
-}
-
-.select-option {
-  width: 250px;
+  width: 100%;
   padding: 16px;
   font-family: futura;
+}
+
+.fs-container button:hover {
+  background: #FF6589;
+  color: white;
+  cursor: pointer;
+}
+
+.fs-container button.active {
+  background: #0018A4;
+  color: white;
 }
 
 
@@ -191,6 +199,18 @@ button {
   padding: 8px;
 }
 
+.like-button:hover {
+  font-variation-settings: 'FILL' 1;
+}
+
 .like-button.filled {
   font-variation-settings: 'FILL' 1;
 }
+
+
+/* MEDIA QUERYS */
+@media (min-width: 667px) {
+  .fs-container button {
+
+    width: 45%;
+  }
