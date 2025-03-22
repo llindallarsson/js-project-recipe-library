@@ -4,7 +4,7 @@ const filterCheckboxes = document.querySelectorAll('input[name="filter"]');
 const sortRadioButtons = document.querySelectorAll('input[name="sort"]');
 const randomRecipeButton = document.querySelector('.random-recipe-button');
 const favoriteRecipeButton = document.getElementById('favorite-recipe-button');
-// const clearFiltersButton = document.getElementById('clear-filters-button');
+const searchBar = document.querySelector('.search-input');
 
 
 const apiKey = 'd003d333cdad4f2ab6b218a0b87d79f2';
@@ -15,7 +15,7 @@ const availableFilters = ["Mediterranean", "Middle Eastern", "Asian", "Italian",
 let allRecipes = [];
 let currentFilter = 'all'; // 'all', 'random', 'favorites'
 
-// Helper function to find the first matching cuisine
+// Function to only fetch recipes with matching cuisine
 const findFirstMatchingCuisine = (recipeCuisines) => {
   if (!recipeCuisines || recipeCuisines.length === 0) {
     return ''; // Return empty string if no cuisines
@@ -29,45 +29,77 @@ const findFirstMatchingCuisine = (recipeCuisines) => {
   return ''; // Return empty string if no cuisine matches an available filter
 };
 
+// Function to fetch recipe data from API
 const fetchRecipes = () => {
   const cachedRecipes = localStorage.getItem(localStorageKey);
 
   if (cachedRecipes) {
     // If data is in local storage, use it
-    allRecipes = JSON.parse(cachedRecipes);
-    console.log('Recipes loaded from cache');
-    console.log('Cached Recipes:', allRecipes); // Log the cached data
-    displayFilteredSortedRecipes(allRecipes);
-  } else {
-    // If data is not in local storage, fetch from API
-    const url = `${baseURL}?number=15&apiKey=${apiKey}&instructionsRequired=true&addRecipeInformation=true&fillIngredients=true&cuisine=Mediterranean,Middle Eastern,Asian,Italian,Mexican,European`;
-    fetch(url)
-      .then((response) => {
-        if (!response.ok) {
+    const parsedData = JSON.parse(cachedRecipes);
+    const currentTime = Date.now();
+    const oneHour = 60 * 60 * 1000; // One hour in milliseconds
+
+    if (currentTime - parsedData.timestamp < oneHour) {
+      // Data is fresh (less than one hour old)
+      allRecipes = parsedData.recipes;
+      console.log('Recipes loaded from cache (fresh)');
+      console.log('Cached Recipes:', allRecipes);
+      displayFilteredSortedRecipes(allRecipes);
+      return; // Exit the function, no need to fetch from API
+    } else {
+      // Data is stale (older than one hour)
+      console.log('Cached data is stale. Fetching from API.');
+      // Continue to fetch from API
+    }
+  }
+  // If data is not in local storage, fetch from API
+  const url = `${baseURL}?number=15&apiKey=${apiKey}&instructionsRequired=true&addRecipeInformation=true&fillIngredients=true&cuisine=Mediterranean,Middle Eastern,Asian,Italian,Mexican,European`;
+  fetch(url)
+    .then((response) => {
+      if (!response.ok) {
+        if (response.status === 402) { // Check for status 402 (Payment Required) - often used for API quota limits
+          throw new Error('API quota limit reached. Please try again later.');
+        } else {
           throw new Error(`API request failed with status: ${response.status}`);
         }
-        return response.json();
-      })
-      .then((data) => {
-        allRecipes = data.results.map(recipe => {
-          // Find the first matching cuisine or an empty string if there are no matches
-          const firstMatchingCuisine = findFirstMatchingCuisine(recipe.cuisines);
-          return { ...recipe, firstMatchingCuisine, isLiked: false }; // Add isLiked property
-        });
-        console.log('Recipes loaded from API');
-        // Store the data in local storage
-        localStorage.setItem(localStorageKey, JSON.stringify(allRecipes));
-        console.log('Recipes stored in cache:', allRecipes); // Log the data being stored
-        displayFilteredSortedRecipes(allRecipes);
-      })
-      .catch((error) => {
-        console.error('Error fetching recipes:', error);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      allRecipes = data.results.map(recipe => {
+        // Find the first matching cuisine or an empty string if there are no matches
+        const firstMatchingCuisine = findFirstMatchingCuisine(recipe.cuisines);
+        return { ...recipe, firstMatchingCuisine, isLiked: false }; // Add isLiked property
       });
-  }
+      console.log('Recipes loaded from API');
+      // Store the data in local storage
+      localStorage.setItem(localStorageKey, JSON.stringify(allRecipes));
+      console.log('Recipes stored in cache:', allRecipes); // Log the data being stored
+      displayFilteredSortedRecipes(allRecipes);
+    })
+    .catch((error) => {
+      console.error('Error fetching recipes:', error);
+      if (error.message === 'API quota limit reached. Please try again later.') {
+        displayErrorMessage(error.message, 402);
+      } else {
+        displayErrorMessage(error.message);
+      }
+    });
 };
 
+// Function to create a recipe card
 const createRecipeCard = (recipeArray) => {
   const fragment = document.createDocumentFragment();
+  recipeSection.innerHTML = '';
+
+  if (recipeArray.length === 0) {
+    const noRecipesMessage = document.createElement('p');
+    noRecipesMessage.textContent = 'No recipes found matching your criteria.';
+    noRecipesMessage.classList.add('no-recipes-message');
+    recipeSection.appendChild(noRecipesMessage);
+    updateRecipeCount(0);
+    return;
+  }
 
   recipeArray.forEach((recipe, index) => {
     const article = document.createElement('article');
@@ -76,7 +108,6 @@ const createRecipeCard = (recipeArray) => {
     article.setAttribute('data-index', index);
 
     const isFilled = recipe.isLiked ? 'filled' : ''; // Determine if the heart should be filled
-
 
     article.innerHTML = `
   <div class="recipe-content">
@@ -123,6 +154,7 @@ const createRecipeCard = (recipeArray) => {
   });
 };
 
+// Function to show how many recipes are displayed
 const updateRecipeCount = (count) => {
   recipeCount.innerHTML = `Recipes (${count})`;
 }
@@ -208,8 +240,6 @@ const ShowRandomRecipe = () => {
   displayFilteredSortedRecipes(allRecipes);
 }
 
-randomRecipeButton.addEventListener('click', ShowRandomRecipe);
-
 // Function to handle like button clicks
 const handleLikeClick = (recipeIndex, event) => {
   event.stopPropagation(); // Prevent event bubbling
@@ -259,8 +289,20 @@ const showLikedRecipes = () => {
   displayFilteredSortedRecipes(allRecipes);
 };
 
-// Event listener for the favorite recipe button
+// Function to search for recipes
+const searchRecipes = () => {
+  const searchTerm = searchBar.value.toLowerCase();
+  const filteredRecipes = allRecipes.filter(recipe => recipe.title.toLowerCase().includes(searchTerm));
+  createRecipeCard(filteredRecipes);
+  updateRecipeCount(filteredRecipes.length);
+};
+
+
+
+// EVENT LISTNER 
+randomRecipeButton.addEventListener('click', ShowRandomRecipe);
 favoriteRecipeButton.addEventListener('click', showLikedRecipes);
+searchBar.addEventListener('input', searchRecipes);
 
 
 fetchRecipes();

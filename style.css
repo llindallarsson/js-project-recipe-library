@@ -1,6 +1,6 @@
 body {
   font-family: futura;
-  margin: 16px;
+  margin: 0;
 }
 
 section {
@@ -9,9 +9,9 @@ section {
 
 /* Headings and text */
 h1 {
-  font-size: 48px;
-  color: #0018A4;
-  margin: 24px 0;
+  font-size: 24px;
+  color: white;
+  margin: 0;
 
   text-transform: capitalize;
   font-weight: 800;
@@ -37,6 +37,59 @@ ul,
 li {
   padding: 0;
   list-style: none;
+}
+
+/* Header */
+header {
+  padding: 16px;
+  background: #0018A4;
+}
+
+.fs-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 16px;
+}
+
+.fs-container button {
+  background: #CCFFE2;
+  border: 2px solid #0018A4;
+  border-radius: 5px;
+  width: 45%;
+  padding: 16px;
+  font-family: futura;
+}
+
+.fs-container button:hover {
+  background: #FF6589;
+  color: white;
+  cursor: pointer;
+}
+
+.fs-container button.active {
+  background: #0018A4;
+  color: white;
+}
+
+/* Main */
+
+main {
+  padding: 16px;
+}
+
+/* Searchbar */
+.search-container {
+  max-width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  border: 2px solid #0018A4;
+  padding: 16px
 }
 
 /* Filter and Sorting elements*/
@@ -153,38 +206,6 @@ li {
   object-fit: cover;
 }
 
-
-
-
-.fs-container {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px
-}
-
-.fs-container button {
-  background: #CCFFE2;
-  border: 2px solid #0018A4;
-  border-radius: 5px;
-  width: 100%;
-  padding: 16px;
-  font-family: futura;
-}
-
-.fs-container button:hover {
-  background: #FF6589;
-  color: white;
-  cursor: pointer;
-}
-
-.fs-container button.active {
-  background: #0018A4;
-  color: white;
-}
-
-
 .like-container {
   display: flex;
   flex-direction: row;
@@ -214,3 +235,4 @@ li {
 
     width: 45%;
   }
+}

@@ -21,11 +21,6 @@
 <body>
   <header>
     <h1>Recipe Library</h1>
-  </header>
-
-  <main>
-    <h2>Find your recipe</h2>
-
     <section class="fs-container">
       <button
         class="random-recipe-button select-option"
@@ -37,7 +32,19 @@
       >My Favorite Recipes</button>
     </section>
 
+  </header>
 
+  <main>
+    <h2>Find a recipe</h2>
+
+    <section class="search-container">
+      <input
+        type="text"
+        id="searchInput"
+        class="search-input"
+        placeholder="Search recipes..."
+      >
+    </section>
     <section class="filter-sort-container">
       <div class="recipe-filter-section">
         <h2>Filter by Cuisine</h2>
@@ -95,6 +102,15 @@
               value="European"
             />
             <label for="filter6">European</label>
+          </li>
+          <li>
+            <input
+              type="checkbox"
+              id="filter7"
+              name="filter"
+              value="Banana"
+            />
+            <label for="filter7">Banana</label>
           </li>
         </ul>
       </div>
