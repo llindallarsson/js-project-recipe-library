@@ -342,12 +342,34 @@ const loadLikedStates = () => {
 // Function to toggle the visibility of the filter section
 const toggleFilterSection = () => {
   filterSection.classList.toggle('open');
+  // Create close button
+  if (filterSection.classList.contains('open')) {
+    const closeButton = document.createElement('button');
+    closeButton.classList.add('close-button');
+    closeButton.textContent = 'X';
+    closeButton.addEventListener('click', closeFilterSection);
+    filterSection.appendChild(closeButton);
+  } else {
+    const closeButton = filterSection.querySelector('.close-button');
+    if (closeButton) {
+      closeButton.remove();
+    }
+  }
+};
+
+// Function to close the filter section
+const closeFilterSection = () => {
+  filterSection.classList.remove('open');
+  const closeButton = filterSection.querySelector('.close-button');
+  if (closeButton) {
+    closeButton.remove();
+  }
 };
 
 // Function to toggle the visibility of the filter options
-const toggleFilterOptions = () => {
-  filterCuisine.classList.toggle('open'); // Toggle 'open' på 'filter-cuisine' när den klickas
-};
+// const toggleFilterOptions = () => {
+//   filterCuisine.classList.toggle('open'); // Toggle 'open' på 'filter-cuisine' när den klickas
+// };
 
 // EVENT LISTNER 
 randomRecipeButton.addEventListener('click', ShowRandomRecipe);
@@ -355,7 +377,7 @@ favoriteRecipeButton.addEventListener('click', showLikedRecipes);
 searchBar.addEventListener('input', searchRecipes);
 sortButton.addEventListener('click', toggleSortOptions);
 showFilterButton.addEventListener('click', toggleFilterSection);
-filterCuisine.addEventListener('click', toggleFilterOptions);
+// filterCuisine.addEventListener('click', toggleFilterOptions);
 
 
 fetchRecipes();

@@ -21,46 +21,38 @@
 <body>
   <header>
     <h1>Recipe Library</h1>
-    <section class="fs-container">
-      <button
-        class="random-recipe-button select-option"
-        id="random-recipe-button"
-      >Random Recipes</button>
-      <button
-        class="favorite-recipe-button select-option"
-        id="favorite-recipe-button"
-      >My Favorite Recipes</button>
-    </section>
+    <button
+      class="favorite-recipe-button select-option"
+      id="favorite-recipe-button"
+    >Favorite Recipes</button>
   </header>
 
   <main>
-    <h2>Find a recipe</h2>
+    <h2>Find your recipe</h2>
+
     <section class="search-container">
-      <form>
-        <input
-          type="text"
-          id="searchInput"
-          class="search-input"
-          placeholder="Search recipes..."
-        >
-        <button
-          id="filter-button"
-          type="button"
-        > filter </button>
-      </form>
+      <input
+        type="text"
+        id="searchInput"
+        class="search-input"
+        placeholder="Search ingredient or recipe..."
+      >
+      <button
+        class="filter-button select-option"
+        id="filter-button"
+        type="button"
+      > filter </button>
     </section>
 
     <section class="recipe-filter-section">
       <h2>Filter recipes</h2>
-      <div>
+      <div class="filter-container">
         <h3
-          id="filter-cuisine"
+          id="
+        filter-cuisine"
           class="filter-header"
         >Filter by Cuisine</h3>
-        <ul
-          id="cuisine-list"
-          class="filter-options"
-        >
+        <ul class="filter-options">
           <li>
             <input
               type="checkbox"
@@ -126,6 +118,11 @@
           </li>
         </ul>
       </div>
+      <hr>
+      <button
+        class="random-recipe-button select-option"
+        id="random-recipe-button"
+      >Random Recipes</button>
     </section>
 
     <section class="recipe-count-sort">
