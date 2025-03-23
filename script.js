@@ -5,11 +5,18 @@ const sortRadioButtons = document.querySelectorAll('input[name="sort"]');
 const randomRecipeButton = document.querySelector('.random-recipe-button');
 const favoriteRecipeButton = document.getElementById('favorite-recipe-button');
 const searchBar = document.querySelector('.search-input');
+const sortButton = document.querySelector('.sort-button');
+const sortOptions = document.querySelector('.recipe-sort-section');
+const filterCuisine = document.getElementById('filter-cuisine');
+const showFilterButton = document.getElementById('filter-button');
+const filterSection = document.querySelector('.recipe-filter-section');
+const filterOptions = document.querySelector('.filter-options');
 
 
 const apiKey = 'd003d333cdad4f2ab6b218a0b87d79f2';
 const baseURL = 'https://api.spoonacular.com/recipes/complexSearch';
 const localStorageKey = 'recipeLibraryCache'; // Key for local storage
+const likedRecipesKey = 'likedRecipes'; // New key for liked recipes
 const availableFilters = ["Mediterranean", "Middle Eastern", "Asian", "Italian", "Mexican", "European"];
 
 let allRecipes = [];
@@ -36,21 +43,22 @@ const fetchRecipes = () => {
   if (cachedRecipes) {
     // If data is in local storage, use it
     const parsedData = JSON.parse(cachedRecipes);
-    const currentTime = Date.now();
-    const oneHour = 60 * 60 * 1000; // One hour in milliseconds
+    // const currentTime = Date.now();
+    // const oneHour = 60 * 60 * 1000; // One hour in milliseconds
 
-    if (currentTime - parsedData.timestamp < oneHour) {
-      // Data is fresh (less than one hour old)
-      allRecipes = parsedData.recipes;
-      console.log('Recipes loaded from cache (fresh)');
-      console.log('Cached Recipes:', allRecipes);
-      displayFilteredSortedRecipes(allRecipes);
-      return; // Exit the function, no need to fetch from API
-    } else {
-      // Data is stale (older than one hour)
-      console.log('Cached data is stale. Fetching from API.');
-      // Continue to fetch from API
-    }
+    // if (currentTime - parsedData.timestamp < oneHour) {
+    // Data is fresh (less than one hour old)
+    allRecipes = parsedData;
+    console.log('Recipes loaded from cache (fresh)');
+    console.log('Cached Recipes:', allRecipes);
+    loadLikedStates(); // Load liked states from local storage
+    displayFilteredSortedRecipes(allRecipes);
+    return; // Exit the function, no need to fetch from API
+    // } else {
+    //   // Data is stale (older than one hour)
+    //   // console.log('Cached data is stale. Fetching from API.');
+    //   // Continue to fetch from API
+    // }
   }
   // If data is not in local storage, fetch from API
   const url = `${baseURL}?number=15&apiKey=${apiKey}&instructionsRequired=true&addRecipeInformation=true&fillIngredients=true&cuisine=Mediterranean,Middle Eastern,Asian,Italian,Mexican,European`;
@@ -75,6 +83,7 @@ const fetchRecipes = () => {
       // Store the data in local storage
       localStorage.setItem(localStorageKey, JSON.stringify(allRecipes));
       console.log('Recipes stored in cache:', allRecipes); // Log the data being stored
+      loadLikedStates();
       displayFilteredSortedRecipes(allRecipes);
     })
     .catch((error) => {
@@ -260,8 +269,9 @@ const handleLikeClick = (recipeIndex, event) => {
 
   likeCountElement.textContent = `${recipe.aggregateLikes} likes`; // Update the like count in the UI
 
-  // Update local storage
-  localStorage.setItem(localStorageKey, JSON.stringify(allRecipes));
+  // // Update local storage
+  // localStorage.setItem(localStorageKey, JSON.stringify(allRecipes));
+  saveLikedStates(); // Save liked states to local storage
 };
 
 // Function to handle recipe card clicks
@@ -297,12 +307,55 @@ const searchRecipes = () => {
   updateRecipeCount(filteredRecipes.length);
 };
 
+// Function to toggle the visibility of the sort section
+const toggleSortOptions = () => {
+  if (sortOptions.style.display === 'block') {
+    sortOptions.style.display = 'none';
+  } else {
+    sortOptions.style.display = 'block';
+  }
+};
 
+// Function to save liked states to local storage
+const saveLikedStates = () => {
+  const likedStates = allRecipes.map(recipe => ({
+    id: recipe.id,
+    isLiked: recipe.isLiked,
+  }));
+  localStorage.setItem(likedRecipesKey, JSON.stringify(likedStates));
+};
+
+// Function to load liked states from local storage
+const loadLikedStates = () => {
+  const storedLikedStates = localStorage.getItem(likedRecipesKey);
+  if (storedLikedStates) {
+    const likedStates = JSON.parse(storedLikedStates);
+    likedStates.forEach(likedState => {
+      const recipe = allRecipes.find(r => r.id === likedState.id);
+      if (recipe) {
+        recipe.isLiked = likedState.isLiked;
+      }
+    });
+  }
+};
+
+// Function to toggle the visibility of the filter section
+const toggleFilterSection = () => {
+  filterSection.classList.toggle('open');
+};
+
+// Function to toggle the visibility of the filter options
+const toggleFilterOptions = () => {
+  filterCuisine.classList.toggle('open'); // Toggle 'open' på 'filter-cuisine' när den klickas
+};
 
 // EVENT LISTNER 
 randomRecipeButton.addEventListener('click', ShowRandomRecipe);
 favoriteRecipeButton.addEventListener('click', showLikedRecipes);
 searchBar.addEventListener('input', searchRecipes);
+sortButton.addEventListener('click', toggleSortOptions);
+showFilterButton.addEventListener('click', toggleFilterSection);
+filterCuisine.addEventListener('click', toggleFilterOptions);
 
 
 fetchRecipes();

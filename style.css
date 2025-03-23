@@ -83,48 +83,87 @@ main {
 
 /* Searchbar */
 .search-container {
-  max-width: 100%;
+  display: flex;
+  flex-direction: row;
+  border: 2px solid #0018A4;
+}
+
+.search-container:focus-within {
+  outline: 2px solid #FF6589;
 }
 
 .search-input {
   width: 100%;
-  border: 2px solid #0018A4;
-  padding: 16px
+  border: none;
+  padding: 16px;
+  flex-grow: 2;
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+.filter-button {
+  background: #CCFFE2;
+  border: none;
+  color: #0018A4;
+  border-radius: 100%;
+  margin: 8px;
+  cursor: pointer;
 }
 
 /* Filter and Sorting elements*/
-.filter-sort-container {
+/* .filter-sort-container {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   column-gap: 32px;
-}
+} */
 
-.filter-sort-container ul {
+/* .recipe-filter-section ul {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 12px;
-}
+} */
 
-.filter-sort-container label {
+/* .recipe-sort-section label, */
+/* .recipe-filter-section label {
   display: inline-block;
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
-}
+} */
 
-.filter-sort-container input[type="radio"],
-.filter-sort-container input[type="checkbox"] {
+/* .recipe-sort-section input[type="radio"], */
+/* .recipe-filter-section input[type="checkbox"] {
   opacity: 0;
   position: fixed;
   width: 0;
-}
+} */
 
 /* --- Filter states --- */
 .recipe-filter-section {
-  width: 100%;
-  max-width: 300px;
+  position: fixed;
+  /* Fixed positioning for full-screen overlay */
+  top: 0;
+  right: -100%;
+  /* Initially off-screen to the right */
+  width: 80%;
+  height: 100%;
+  background-color: white;
+  /* Add a background color */
+  z-index: 10;
+  /* Ensure it's on top of other content */
+  transition: right 0.3s ease-in-out;
+  /* Smooth transition for the 'right' property */
+  padding: 16px;
+  overflow-y: auto;
+  /* Add scroll if needed */
+}
+
+.recipe-filter-section.open {
+  right: 0;
 }
 
 .recipe-filter-section label {
@@ -145,9 +184,21 @@ main {
   border-color: #0018A4;
 }
 
+.filter-options {
+  display: none;
+  transition: all 0.3s ease-in-out;
+}
+
+
+.filter-header.open+.filter-options {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px;
+}
 
 /* --- Sort states --- */
-.recipe-sort-section {
+/* .recipe-sort-section {
   width: 100%;
   max-width: 400px;
 }
@@ -155,18 +206,39 @@ main {
 .recipe-sort-section label {
   background: #FFECEA;
   border: 2px solid #FFECEA;
-}
+} */
 
-.recipe-sort-section input[type="radio"]:checked+label {
+/* .recipe-sort-section input[type="radio"]:checked+label {
   background: #FF6589;
   color: white;
   border-color: #FF6589;
-}
+} */
 
-.recipe-sort-section input[type="radio"]:hover+label {
+/* .recipe-sort-section input[type="radio"]:hover+label {
   background: #FF6589;
   color: white;
   border-color: #0018A4;
+} */
+
+/* Count and sorting section */
+.recipe-count-sort {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between
+}
+
+.recipe-sort-section {
+  background: #FF6589;
+  display: none;
+}
+
+.recipe-sort-section ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px;
+  ;
 }
 
 /* Recipe Card */

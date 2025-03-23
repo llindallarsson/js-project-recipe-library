@@ -31,24 +31,36 @@
         id="favorite-recipe-button"
       >My Favorite Recipes</button>
     </section>
-
   </header>
 
   <main>
     <h2>Find a recipe</h2>
-
     <section class="search-container">
-      <input
-        type="text"
-        id="searchInput"
-        class="search-input"
-        placeholder="Search recipes..."
-      >
+      <form>
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder="Search recipes..."
+        >
+        <button
+          id="filter-button"
+          type="button"
+        > filter </button>
+      </form>
     </section>
-    <section class="filter-sort-container">
-      <div class="recipe-filter-section">
-        <h2>Filter by Cuisine</h2>
-        <ul>
+
+    <section class="recipe-filter-section">
+      <h2>Filter recipes</h2>
+      <div>
+        <h3
+          id="filter-cuisine"
+          class="filter-header"
+        >Filter by Cuisine</h3>
+        <ul
+          id="cuisine-list"
+          class="filter-options"
+        >
           <li>
             <input
               type="checkbox"
@@ -114,10 +126,13 @@
           </li>
         </ul>
       </div>
+    </section>
 
-      <div class="recipe-sort-section">
-        <h2>Sort by</h2>
-        <ul>
+    <section class="recipe-count-sort">
+      <h3 class="recipe-count"></h3>
+      <div>
+        <button class="sort-button select-option">Sort recipes</button>
+        <ul class="recipe-sort-section">
           <li>
             <input
               type="radio"
@@ -148,7 +163,7 @@
         </ul>
       </div>
     </section>
-    <h3 class="recipe-count"></h3>
+
     <section class="recipe-card-section">
     </section>
   </main>
