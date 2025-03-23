@@ -1,415 +1,415 @@
-const recipeSection = document.querySelector('.recipe-card-section');
-const recipeCount = document.querySelector('.recipe-count');
-const filterCheckboxes = document.querySelectorAll('input[name="filter"]');
-const sortRadioButtons = document.querySelectorAll('input[name="sort"]');
-const randomRecipeButton = document.querySelector('.random-recipe-button');
-const favoriteRecipeButton = document.getElementById('favorite-recipe-button');
-const searchBar = document.querySelector('.search-input');
-const sortButton = document.querySelector('.sort-button');
-const sortOptions = document.querySelector('.sort-options');
-const filterCuisine = document.getElementById('filter-cuisine');
-const showFilterButton = document.getElementById('filter-button');
-const filterSection = document.querySelector('.recipe-filter-section');
-const filterOptions = document.querySelector('.filter-options');
+// Constants
+const API_KEY = 'd003d333cdad4f2ab6b218a0b87d79f2';
+const BASE_URL = 'https://api.spoonacular.com/recipes/complexSearch';
+const LOCAL_STORAGE_KEY = 'recipeLibraryCache';
+const LIKED_RECIPES_KEY = 'likedRecipes';
+const AVAILABLE_FILTERS = ["Mediterranean", "Middle Eastern", "Asian", "Italian", "Mexican", "European"];
 
+// DOM Elements
+const elements = {
+  recipeSection: document.querySelector('.recipe-card-section'),
+  recipeCount: document.querySelector('.recipe-count'),
+  filterCheckboxes: document.querySelectorAll('input[name="filter"]'),
+  sortRadioButtons: document.querySelectorAll('input[name="sort"]'),
+  randomRecipeButton: document.querySelector('.random-recipe-button'),
+  favoriteRecipeButton: document.getElementById('favorite-recipe-button'),
+  searchBar: document.querySelector('.search-input'),
+  sortButton: document.querySelector('.sort-button'),
+  sortOptions: document.querySelector('.sort-options'),
+  showFilterButton: document.getElementById('filter-button'),
+  filterSection: document.querySelector('.recipe-filter-section'),
+  loadingIndicator: document.createElement('div')
+};
 
-const apiKey = 'd003d333cdad4f2ab6b218a0b87d79f2';
-const baseURL = 'https://api.spoonacular.com/recipes/complexSearch';
-const localStorageKey = 'recipeLibraryCache'; // Key for local storage
-const likedRecipesKey = 'likedRecipes'; // New key for liked recipes
-const availableFilters = ["Mediterranean", "Middle Eastern", "Asian", "Italian", "Mexican", "European"];
+// State
+let state = {
+  allRecipes: [],
+  currentFilter: 'all' // 'all', 'random', 'favorites'
+};
 
-let allRecipes = [];
-let currentFilter = 'all'; // 'all', 'random', 'favorites'
+// Initialize loading indicator
+elements.loadingIndicator.classList.add('loading-indicator');
+elements.recipeSection.appendChild(elements.loadingIndicator);
 
-// Function to only fetch recipes with matching cuisine
-const findFirstMatchingCuisine = (recipeCuisines) => {
-  if (!recipeCuisines || recipeCuisines.length === 0) {
-    return ''; // Return empty string if no cuisines
+/**
+ * Loading indicator functions
+ */
+const loadingIndicator = {
+  show: () => {
+    elements.loadingIndicator.style.display = 'block';
+    elements.recipeSection.innerHTML = '';
+    elements.recipeSection.appendChild(elements.loadingIndicator);
+  },
+
+  hide: () => {
+    elements.loadingIndicator.style.display = 'none';
   }
+};
 
-  for (const cuisine of recipeCuisines) {
-    if (availableFilters.includes(cuisine)) {
-      return cuisine; // Return the first cuisine that matches an available filter
+/**
+ * Recipe utility functions
+ */
+const recipeUtils = {
+  findFirstMatchingCuisine: (recipeCuisines) => {
+    if (!recipeCuisines || recipeCuisines.length === 0) {
+      return '';
+    }
+
+    for (const cuisine of recipeCuisines) {
+      if (AVAILABLE_FILTERS.includes(cuisine)) {
+        return cuisine;
+      }
+    }
+    return '';
+  },
+
+  displayErrorMessage: (message, statusCode) => {
+    elements.recipeSection.innerHTML = '';
+    const errorMessage = document.createElement('div');
+    errorMessage.classList.add('error-message');
+
+    if (statusCode === 402) {
+      errorMessage.innerHTML = `
+        <p>Oops! Looks like our recipe ingredients got lost in the digital kitchen. Please try again in a moment — we're cooking up a fix!</p>
+      `;
+    } else {
+      errorMessage.innerHTML = `
+        <p>An error occurred: ${message}</p>
+        <p>Please try again later.</p>
+      `;
+    }
+
+    elements.recipeSection.appendChild(errorMessage);
+    recipeDisplay.updateRecipeCount(0);
+  }
+};
+
+/**
+ * API and data handling functions
+ */
+const dataService = {
+  fetchRecipes: () => {
+    const cachedRecipes = localStorage.getItem(LOCAL_STORAGE_KEY);
+
+    if (cachedRecipes) {
+      state.allRecipes = JSON.parse(cachedRecipes);
+      console.log('Recipes loaded from cache');
+      dataService.loadLikedStates();
+      recipeDisplay.displayFilteredSortedRecipes();
+      return;
+    }
+
+    loadingIndicator.show();
+    const url = `${BASE_URL}?number=15&apiKey=${API_KEY}&instructionsRequired=true&addRecipeInformation=true&fillIngredients=true&cuisine=${AVAILABLE_FILTERS.join(',')}`;
+
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) {
+          if (response.status === 402) {
+            throw new Error('API quota limit reached. Please try again later.');
+          } else {
+            throw new Error(`API request failed with status: ${response.status}`);
+          }
+        }
+        return response.json();
+      })
+      .then((data) => {
+        state.allRecipes = data.results.map(recipe => ({
+          ...recipe,
+          firstMatchingCuisine: recipeUtils.findFirstMatchingCuisine(recipe.cuisines),
+          isLiked: false
+        }));
+
+        console.log('Recipes loaded from API');
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.allRecipes));
+        dataService.loadLikedStates();
+        recipeDisplay.displayFilteredSortedRecipes();
+        loadingIndicator.hide();
+      })
+      .catch((error) => {
+        console.error('Error fetching recipes:', error);
+        recipeUtils.displayErrorMessage(error.message, error.message.includes('quota') ? 402 : null);
+        loadingIndicator.hide();
+      });
+  },
+
+  saveLikedStates: () => {
+    const likedStates = state.allRecipes.map(recipe => ({
+      id: recipe.id,
+      isLiked: recipe.isLiked,
+    }));
+    localStorage.setItem(LIKED_RECIPES_KEY, JSON.stringify(likedStates));
+  },
+
+  loadLikedStates: () => {
+    const storedLikedStates = localStorage.getItem(LIKED_RECIPES_KEY);
+    if (storedLikedStates) {
+      const likedStates = JSON.parse(storedLikedStates);
+      likedStates.forEach(likedState => {
+        const recipe = state.allRecipes.find(r => r.id === likedState.id);
+        if (recipe) {
+          recipe.isLiked = likedState.isLiked;
+        }
+      });
     }
   }
-  return ''; // Return empty string if no cuisine matches an available filter
 };
 
-// Function to display error messages
-const displayErrorMessage = (message, statusCode) => {
-  recipeSection.innerHTML = ''; // Clear existing recipes
-  const errorMessage = document.createElement('div');
-  errorMessage.classList.add('error-message');
-  if (statusCode === 402) {
-    errorMessage.innerHTML = `
-      <p>Oops! Looks like our recipe ingredients got lost in the digital kitchen. Please try again in a moment — we're cooking up a fix!</p>
+/**
+ * Recipe display functions
+ */
+const recipeDisplay = {
+  createRecipeCard: (recipeArray) => {
+    elements.recipeSection.innerHTML = '';
 
-    `;
-  } else {
-    errorMessage.innerHTML = `
-      <p>An error occurred: ${message}</p>
-      <p>Please try again later.</p>
-    `;
-  }
-  recipeSection.appendChild(errorMessage);
-  updateRecipeCount(0); // Update the recipe count to 0
-};
+    if (recipeArray.length === 0) {
+      const noRecipesMessage = document.createElement('p');
+      noRecipesMessage.textContent = 'No recipes found matching your criteria.';
+      noRecipesMessage.classList.add('no-recipes-message');
+      elements.recipeSection.appendChild(noRecipesMessage);
+      recipeDisplay.updateRecipeCount(0);
+      return;
+    }
 
-// Function to fetch recipe data from API
-const fetchRecipes = () => {
-  const cachedRecipes = localStorage.getItem(localStorageKey);
+    const fragment = document.createDocumentFragment();
 
-  if (cachedRecipes) {
-    // If data is in local storage, use it
-    const parsedData = JSON.parse(cachedRecipes);
-    // const currentTime = Date.now();
-    // const oneHour = 60 * 60 * 1000; // One hour in milliseconds
+    recipeArray.forEach((recipe, index) => {
+      const article = document.createElement('article');
+      article.classList.add('recipe-card');
+      article.setAttribute('data-index', index);
 
-    // if (currentTime - parsedData.timestamp < oneHour) {
-    // Data is fresh (less than one hour old)
-    allRecipes = parsedData;
-    console.log('Recipes loaded from cache (fresh)');
-    console.log('Cached Recipes:', allRecipes);
-    loadLikedStates(); // Load liked states from local storage
-    displayFilteredSortedRecipes(allRecipes);
-    return; // Exit the function, no need to fetch from API
-    // } else {
-    //   // Data is stale (older than one hour)
-    //   // console.log('Cached data is stale. Fetching from API.');
-    //   // Continue to fetch from API
-    // }
-  }
-  // If data is not in local storage, fetch from API
-  const url = `${baseURL}?number=15&apiKey=${apiKey}&instructionsRequired=true&addRecipeInformation=true&fillIngredients=true&cuisine=Mediterranean,Middle Eastern,Asian,Italian,Mexican,European`;
-  fetch(url)
-    .then((response) => {
-      if (!response.ok) {
-        if (response.status === 402) { // Check for status 402 (Payment Required) - often used for API quota limits
-          throw new Error('API quota limit reached. Please try again later.');
-        } else {
-          throw new Error(`API request failed with status: ${response.status}`);
-        }
-      }
-      return response.json();
-    })
-    .then((data) => {
-      allRecipes = data.results.map(recipe => {
-        // Find the first matching cuisine or an empty string if there are no matches
-        const firstMatchingCuisine = findFirstMatchingCuisine(recipe.cuisines);
-        return { ...recipe, firstMatchingCuisine, isLiked: false }; // Add isLiked property
-      });
-      console.log('Recipes loaded from API');
-      // Store the data in local storage
-      localStorage.setItem(localStorageKey, JSON.stringify(allRecipes));
-      console.log('Recipes stored in cache:', allRecipes); // Log the data being stored
-      loadLikedStates();
-      displayFilteredSortedRecipes(allRecipes);
-    })
-    .catch((error) => {
-      console.error('Error fetching recipes:', error);
-      if (error.message === 'API quota limit reached. Please try again later.') {
-        displayErrorMessage(error.message, 402);
-      } else {
-        displayErrorMessage(error.message);
-      }
-    });
-};
+      const isFilled = recipe.isLiked ? 'filled' : '';
 
-// Function to create a recipe card
-const createRecipeCard = (recipeArray) => {
-  const fragment = document.createDocumentFragment();
-  recipeSection.innerHTML = '';
-
-  if (recipeArray.length === 0) {
-    const noRecipesMessage = document.createElement('p');
-    noRecipesMessage.textContent = 'No recipes found matching your criteria.';
-    noRecipesMessage.classList.add('no-recipes-message');
-    recipeSection.appendChild(noRecipesMessage);
-    updateRecipeCount(0);
-    return;
-  }
-
-  recipeArray.forEach((recipe, index) => {
-    const article = document.createElement('article');
-    article.classList.add('recipe-card');
-    // Add data-index attribute to the article
-    article.setAttribute('data-index', index);
-
-    const isFilled = recipe.isLiked ? 'filled' : ''; // Determine if the heart should be filled
-
-    article.innerHTML = `
-  <div class="recipe-content">
-      <div class="recipe-media">
+      article.innerHTML = `
+        <div class="recipe-content">
+          <div class="recipe-media">
             <img src="${recipe.image}" alt="${recipe.title}">
-      </div>
-       <div class="recipe-data">
-      <h3>${recipe.title}</h3>
-      <hr>
-      <div class="recipe-info">
-            <p><b>Cuisine:</b> ${recipe.firstMatchingCuisine}</p>
-            <p><b>Time:</b> ${recipe.readyInMinutes} minutes</p>
-            <p><b>Amount of ingredients:</b> ${recipe.extendedIngredients?.length}</p>
-      </div>
-      <div class="like-container">
+          </div>
+          <div class="recipe-data">
+            <h3>${recipe.title}</h3>
+            <hr>
+            <div class="recipe-info">
+              <p><b>Cuisine:</b> ${recipe.firstMatchingCuisine}</p>
+              <p><b>Time:</b> ${recipe.readyInMinutes} minutes</p>
+              <p><b>Amount of ingredients:</b> ${recipe.extendedIngredients?.length}</p>
+            </div>
+            <div class="like-container">
               <span class="material-symbols-outlined like-button ${isFilled}">favorite</span>
               <p class="like-count">${recipe.aggregateLikes} likes</p>
-      </div>
-    </div>
-  </div>
-    `;
+            </div>
+          </div>
+        </div>
+      `;
 
-    fragment.appendChild(article);
-  });
-
-  recipeSection.innerHTML = '';
-  recipeSection.appendChild(fragment);
-
-
-  // Add event listeners to like buttons after they are created
-  const likeButtons = document.querySelectorAll('.like-button');
-  likeButtons.forEach((button, index) => {
-    button.addEventListener('click', (event) => {
-      handleLikeClick(index, event);
+      fragment.appendChild(article);
     });
-  });
 
-  // Add event listeners to recipe cards after they are created
-  const recipeCards = document.querySelectorAll('.recipe-card');
-  recipeCards.forEach(card => {
-    card.addEventListener('click', () => {
-      const index = card.getAttribute('data-index');
-      handleRecipeCardClick(index);
+    elements.recipeSection.appendChild(fragment);
+    recipeDisplay.updateRecipeCount(recipeArray.length);
+
+    // Add event listeners
+    document.querySelectorAll('.like-button').forEach((button, index) => {
+      button.addEventListener('click', (event) => eventHandlers.handleLikeClick(index, event));
     });
-  });
-};
 
-// Function to show how many recipes are displayed
-const updateRecipeCount = (count) => {
-  recipeCount.innerHTML = `Recipes (${count})`;
-}
-
-// Filter recipes
-const filterRecipes = () => {
-  const selectedFilters = Array.from(filterCheckboxes)
-    .filter(checkbox => checkbox.checked)
-    .map(checkbox => checkbox.value);
-
-  if (selectedFilters.length > 0) {
-    showFilterButton.classList.add('active'); // Add 'active' class when filters are selected
-  } else {
-    showFilterButton.classList.remove('active'); // Remove 'active' class when no filters are selected
-  }
-
-  let filteredRecipes = allRecipes;
-
-  if (currentFilter === 'random') {
-    filteredRecipes = allRecipes.filter(recipe => recipe.firstMatchingCuisine !== '');
-    const randomIndex = Math.floor(Math.random() * filteredRecipes.length);
-    filteredRecipes = [filteredRecipes[randomIndex]];
-  } else if (currentFilter === 'favorites') {
-    filteredRecipes = allRecipes.filter(recipe => recipe.isLiked);
-  } else if (selectedFilters.length > 0) {
-    filteredRecipes = allRecipes.filter(recipe => {
-      return recipe.cuisines.some(cuisine => selectedFilters.includes(cuisine));
+    document.querySelectorAll('.recipe-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const index = card.getAttribute('data-index');
+        eventHandlers.handleRecipeCardClick(index);
+      });
     });
-  } else {
-    filteredRecipes = allRecipes;
-  }
-  return filteredRecipes;
-};
+  },
 
-// Sort recipes
-const sortRecipes = (recipes) => {
-  const selectedSort = Array.from(sortRadioButtons).find(radioButton => radioButton.checked);
+  updateRecipeCount: (count) => {
+    elements.recipeCount.innerHTML = `Recipes (${count})`;
+  },
 
-  if (selectedSort) {
-    const sortValue = selectedSort.value;
+  filterRecipes: () => {
+    const selectedFilters = Array.from(elements.filterCheckboxes)
+      .filter(checkbox => checkbox.checked)
+      .map(checkbox => checkbox.value);
 
-    if (sortValue === 'mostPopularRecipes') {
-      recipes.sort((a, b) => b.aggregateLikes - a.aggregateLikes);
-    } else if (sortValue === 'shortestCookingTime') {
-      recipes.sort((a, b) => a.readyInMinutes - b.readyInMinutes);
-    } else if (sortValue === 'fewestIngredients') {
-      recipes.sort((a, b) => a.extendedIngredients.length - b.extendedIngredients.length);
+    elements.showFilterButton.classList.toggle('active', selectedFilters.length > 0);
+
+    let filteredRecipes = [...state.allRecipes];
+
+    if (state.currentFilter === 'random') {
+      filteredRecipes = state.allRecipes.filter(recipe => recipe.firstMatchingCuisine !== '');
+      const randomIndex = Math.floor(Math.random() * filteredRecipes.length);
+      filteredRecipes = [filteredRecipes[randomIndex]];
+    } else if (state.currentFilter === 'favorites') {
+      filteredRecipes = state.allRecipes.filter(recipe => recipe.isLiked);
+    } else if (selectedFilters.length > 0) {
+      filteredRecipes = state.allRecipes.filter(recipe =>
+        recipe.cuisines.some(cuisine => selectedFilters.includes(cuisine))
+      );
     }
-    sortButton.classList.add('active'); // Add 'active' class when a sort option is selected
-  } else {
-    sortButton.classList.remove('active');
-  }
-  return recipes
-};
 
-// Function to display filtered and sorted recipes
-const displayFilteredSortedRecipes = (recipes) => {
-  const filteredRecipes = filterRecipes();
-  const sortedRecipes = sortRecipes(filteredRecipes);
-  createRecipeCard(sortedRecipes); // Display all recipes
-  updateRecipeCount(sortedRecipes.length);
-};
+    return filteredRecipes;
+  },
 
-// Event listeners
-filterCheckboxes.forEach(checkbox => {
-  checkbox.addEventListener('change', () => {
-    currentFilter = 'all';
-    randomRecipeButton.classList.remove('active');
-    favoriteRecipeButton.classList.remove('active');
-    displayFilteredSortedRecipes(allRecipes)
-    randomRecipeButton.textContent = "Surprise me";
-    favoriteRecipeButton.textContent = "My favorites recipes";
-  });
-});
+  sortRecipes: (recipes) => {
+    const selectedSort = Array.from(elements.sortRadioButtons).find(radio => radio.checked);
 
-sortRadioButtons.forEach(radioButton => {
-  radioButton.addEventListener('change', () => displayFilteredSortedRecipes(allRecipes));
-});
+    if (selectedSort) {
+      const sortValue = selectedSort.value;
+      elements.sortButton.classList.add('active');
 
-// Random recipe
-const ShowRandomRecipe = () => {
-  if (currentFilter === 'random') {
-    currentFilter = 'all';
-    randomRecipeButton.classList.remove('active');
-    randomRecipeButton.textContent = "Random Recipe";
-  } else {
-    currentFilter = 'random';
-    randomRecipeButton.classList.add('active');
-    favoriteRecipeButton.classList.remove('active');
-    randomRecipeButton.textContent = "Show All Recipes";
-  }
-  displayFilteredSortedRecipes(allRecipes);
-}
-
-// Function to handle like button clicks
-const handleLikeClick = (recipeIndex, event) => {
-  event.stopPropagation(); // Prevent event bubbling
-
-  const recipe = allRecipes[recipeIndex];
-  const likeButton = document.querySelectorAll('.like-button')[recipeIndex];
-  const likeCountElement = document.querySelectorAll('.like-count')[recipeIndex];
-
-  if (recipe.isLiked) {
-    recipe.aggregateLikes--; // Decrement the like count
-    likeButton.classList.remove('filled'); // Remove the filled class
-  } else {
-    recipe.aggregateLikes++; // Increment the like count
-    likeButton.classList.add('filled'); // Add the filled class
-  }
-
-  recipe.isLiked = !recipe.isLiked; // Toggle the isLiked state
-
-  likeCountElement.textContent = `${recipe.aggregateLikes} likes`; // Update the like count in the UI
-
-  // // Update local storage
-  // localStorage.setItem(localStorageKey, JSON.stringify(allRecipes));
-  saveLikedStates(); // Save liked states to local storage
-};
-
-// Function to handle recipe card clicks
-const handleRecipeCardClick = (recipeIndex) => {
-  const recipe = allRecipes[recipeIndex];
-  if (recipe && recipe.sourceUrl) {
-    window.open(recipe.sourceUrl, '_blank'); // Open the URL in a new tab
-  } else {
-    console.error('Recipe or source URL not found.');
-  }
-};
-
-// Function to display only liked recipes
-const showLikedRecipes = () => {
-  if (currentFilter === 'favorites') {
-    currentFilter = 'all';
-    favoriteRecipeButton.classList.remove('active');
-    favoriteRecipeButton.textContent = "My Favorites Recipes";
-  } else {
-    currentFilter = 'favorites';
-    favoriteRecipeButton.classList.add('active');
-    randomRecipeButton.classList.remove('active');
-    favoriteRecipeButton.textContent = "Show All Recipes";
-  }
-  displayFilteredSortedRecipes(allRecipes);
-};
-
-// Function to search for recipes
-const searchRecipes = () => {
-  const searchTerm = searchBar.value.toLowerCase();
-  const filteredRecipes = allRecipes.filter(recipe => recipe.title.toLowerCase().includes(searchTerm));
-  createRecipeCard(filteredRecipes);
-  updateRecipeCount(filteredRecipes.length);
-};
-
-// Function to toggle the visibility of the sort section
-const toggleSortOptions = () => {
-  if (sortOptions.style.display === 'block') {
-    sortOptions.style.display = 'none';
-  } else {
-    sortOptions.style.display = 'block';
-  }
-};
-
-// Function to save liked states to local storage
-const saveLikedStates = () => {
-  const likedStates = allRecipes.map(recipe => ({
-    id: recipe.id,
-    isLiked: recipe.isLiked,
-  }));
-  localStorage.setItem(likedRecipesKey, JSON.stringify(likedStates));
-};
-
-// Function to load liked states from local storage
-const loadLikedStates = () => {
-  const storedLikedStates = localStorage.getItem(likedRecipesKey);
-  if (storedLikedStates) {
-    const likedStates = JSON.parse(storedLikedStates);
-    likedStates.forEach(likedState => {
-      const recipe = allRecipes.find(r => r.id === likedState.id);
-      if (recipe) {
-        recipe.isLiked = likedState.isLiked;
+      if (sortValue === 'mostPopularRecipes') {
+        recipes.sort((a, b) => b.aggregateLikes - a.aggregateLikes);
+      } else if (sortValue === 'shortestCookingTime') {
+        recipes.sort((a, b) => a.readyInMinutes - b.readyInMinutes);
+      } else if (sortValue === 'fewestIngredients') {
+        recipes.sort((a, b) => a.extendedIngredients.length - b.extendedIngredients.length);
       }
-    });
+    } else {
+      elements.sortButton.classList.remove('active');
+    }
+
+    return recipes;
+  },
+
+  displayFilteredSortedRecipes: () => {
+    const filteredRecipes = recipeDisplay.filterRecipes();
+    const sortedRecipes = recipeDisplay.sortRecipes([...filteredRecipes]); // Create a copy to avoid modifying original
+    recipeDisplay.createRecipeCard(sortedRecipes);
+  },
+
+  searchRecipes: () => {
+    const searchTerm = elements.searchBar.value.toLowerCase();
+    const filteredRecipes = state.allRecipes.filter(recipe =>
+      recipe.title.toLowerCase().includes(searchTerm)
+    );
+    recipeDisplay.createRecipeCard(filteredRecipes);
   }
 };
 
-// Function to toggle the visibility of the filter section
-const toggleFilterSection = () => {
-  filterSection.classList.toggle('open');
-  // Create close button
-  if (filterSection.classList.contains('open')) {
-    const closeButton = document.createElement('button');
-    closeButton.classList.add('close-button');
-    closeButton.textContent = 'X';
-    closeButton.addEventListener('click', closeFilterSection);
-    filterSection.appendChild(closeButton);
-  } else {
-    const closeButton = filterSection.querySelector('.close-button');
+/**
+ * UI interaction handlers
+ */
+const uiInteractions = {
+  showRandomRecipe: () => {
+    if (state.currentFilter === 'random') {
+      state.currentFilter = 'all';
+      elements.randomRecipeButton.classList.remove('active');
+      elements.randomRecipeButton.textContent = "Surprise me";
+    } else {
+      state.currentFilter = 'random';
+      elements.randomRecipeButton.classList.add('active');
+      elements.favoriteRecipeButton.classList.remove('active');
+      elements.randomRecipeButton.textContent = "Show All Recipes";
+    }
+    recipeDisplay.displayFilteredSortedRecipes();
+  },
+
+  showLikedRecipes: () => {
+    if (state.currentFilter === 'favorites') {
+      state.currentFilter = 'all';
+      elements.favoriteRecipeButton.classList.remove('active');
+      elements.favoriteRecipeButton.textContent = "My Favorites Recipes";
+    } else {
+      state.currentFilter = 'favorites';
+      elements.favoriteRecipeButton.classList.add('active');
+      elements.randomRecipeButton.classList.remove('active');
+      elements.favoriteRecipeButton.textContent = "Show All Recipes";
+    }
+    recipeDisplay.displayFilteredSortedRecipes();
+  },
+
+  toggleSortOptions: () => {
+    elements.sortOptions.style.display = elements.sortOptions.style.display === 'block' ? 'none' : 'block';
+  },
+
+  toggleFilterSection: () => {
+    elements.filterSection.classList.toggle('open');
+
+    if (elements.filterSection.classList.contains('open')) {
+      const closeButton = document.createElement('button');
+      closeButton.classList.add('close-button');
+      closeButton.textContent = 'X';
+      closeButton.addEventListener('click', uiInteractions.closeFilterSection);
+      elements.filterSection.appendChild(closeButton);
+    } else {
+      uiInteractions.closeFilterSection();
+    }
+  },
+
+  closeFilterSection: () => {
+    elements.filterSection.classList.remove('open');
+    const closeButton = elements.filterSection.querySelector('.close-button');
     if (closeButton) {
       closeButton.remove();
     }
+  },
+
+  resetFilterButtons: () => {
+    state.currentFilter = 'all';
+    elements.randomRecipeButton.classList.remove('active');
+    elements.favoriteRecipeButton.classList.remove('active');
+    elements.randomRecipeButton.textContent = "Surprise me";
+    elements.favoriteRecipeButton.textContent = "My favorites recipes";
   }
 };
 
-// Function to close the filter section
-const closeFilterSection = () => {
-  filterSection.classList.remove('open');
-  const closeButton = filterSection.querySelector('.close-button');
-  if (closeButton) {
-    closeButton.remove();
+/**
+ * Event handlers
+ */
+const eventHandlers = {
+  handleLikeClick: (recipeIndex, event) => {
+    event.stopPropagation();
+
+    const recipe = state.allRecipes[recipeIndex];
+    const likeButton = document.querySelectorAll('.like-button')[recipeIndex];
+    const likeCountElement = document.querySelectorAll('.like-count')[recipeIndex];
+
+    recipe.isLiked = !recipe.isLiked;
+    recipe.aggregateLikes += recipe.isLiked ? 1 : -1;
+
+    likeButton.classList.toggle('filled', recipe.isLiked);
+    likeCountElement.textContent = `${recipe.aggregateLikes} likes`;
+
+    dataService.saveLikedStates();
+  },
+
+  handleRecipeCardClick: (recipeIndex) => {
+    const recipe = state.allRecipes[recipeIndex];
+    if (recipe?.sourceUrl) {
+      window.open(recipe.sourceUrl, '_blank');
+    } else {
+      console.error('Recipe or source URL not found.');
+    }
   }
 };
 
-// Function to toggle the visibility of the filter options
-// const toggleFilterOptions = () => {
-//   filterCuisine.classList.toggle('open'); // Toggle 'open' på 'filter-cuisine' när den klickas
-// };
+/**
+ * Set up event listeners
+ */
+const setupEventListeners = () => {
+  elements.filterCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      uiInteractions.resetFilterButtons();
+      recipeDisplay.displayFilteredSortedRecipes();
+    });
+  });
 
-// EVENT LISTNER 
-randomRecipeButton.addEventListener('click', ShowRandomRecipe);
-favoriteRecipeButton.addEventListener('click', showLikedRecipes);
-searchBar.addEventListener('input', searchRecipes);
-sortButton.addEventListener('click', toggleSortOptions);
-showFilterButton.addEventListener('click', toggleFilterSection);
-// filterCuisine.addEventListener('click', toggleFilterOptions);
+  elements.sortRadioButtons.forEach(radioButton => {
+    radioButton.addEventListener('change', recipeDisplay.displayFilteredSortedRecipes);
+  });
 
+  elements.randomRecipeButton.addEventListener('click', uiInteractions.showRandomRecipe);
+  elements.favoriteRecipeButton.addEventListener('click', uiInteractions.showLikedRecipes);
+  elements.searchBar.addEventListener('input', recipeDisplay.searchRecipes);
+  elements.sortButton.addEventListener('click', uiInteractions.toggleSortOptions);
+  elements.showFilterButton.addEventListener('click', uiInteractions.toggleFilterSection);
+};
 
-fetchRecipes();
+/**
+ * Initialize application
+ */
+const init = () => {
+  setupEventListeners();
+  dataService.fetchRecipes();
+};
 
-
+// Start the application
+init();
