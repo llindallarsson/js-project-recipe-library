@@ -36,6 +36,25 @@ const findFirstMatchingCuisine = (recipeCuisines) => {
   return ''; // Return empty string if no cuisine matches an available filter
 };
 
+// Function to display error messages
+const displayErrorMessage = (message, statusCode) => {
+  recipeSection.innerHTML = ''; // Clear existing recipes
+  const errorMessage = document.createElement('div');
+  errorMessage.classList.add('error-message');
+  if (statusCode === 402) {
+    errorMessage.innerHTML = `
+      <p>Oops! Looks like our recipe ingredients got lost in the digital kitchen. Please try again in a moment — we're cooking up a fix!</p>
+    `;
+  } else {
+    errorMessage.innerHTML = `
+      <p>An error occurred: ${message}</p>
+      <p>Please try again later.</p>
+    `;
+  }
+  recipeSection.appendChild(errorMessage);
+  updateRecipeCount(0); // Update the recipe count to 0
+};
+
 // Function to fetch recipe data from API
 const fetchRecipes = () => {
   const cachedRecipes = localStorage.getItem(localStorageKey);
@@ -144,6 +163,7 @@ const createRecipeCard = (recipeArray) => {
 
   recipeSection.innerHTML = '';
   recipeSection.appendChild(fragment);
+
 
   // Add event listeners to like buttons after they are created
   const likeButtons = document.querySelectorAll('.like-button');
