@@ -42,10 +42,12 @@ li {
   list-style: none;
 }
 
-/* Buttons */
+/* ----- Buttons ----- */
 
 button {
   cursor: pointer;
+  font-family: Futura;
+  font-weight: 500;
 }
 
 .random-recipe-button {
@@ -77,21 +79,54 @@ button {
   color: white;
 }
 
+/* FilterBtn */
 .filter-button {
-  background: #0018A4;
-  border: none;
-  color: white;
-  border-radius: 100%;
+  background: #CCFFE2;
+  border: 2px solid #CCFFE2;
+  color: #0018A4;
+  border-radius: 100px;
   margin: 4px;
   width: 40px;
   height: 40px;
+
 }
 
 .filter-button:hover {
-  background: #CCFFE2;
-  color: #0018A4;
+  background: #0018A4;
+  color: white;
+  border: 2px solid #0018A4;
 }
 
+.filter-button.active {
+  background: #0018A4;
+  color: white;
+  border: 2px solid #0018A4;
+}
+
+
+/* SortBtn */
+.sort-button {
+  background: #FFECEA;
+  color: #0018A4;
+  border: 2px solid #FFECEA;
+  border-radius: 50px;
+  padding: 4px 8px;
+}
+
+.sort-button:hover {
+  background: #FF6589;
+  color: white;
+  border: 2px solid #0018A4;
+}
+
+.sort-button.active {
+  background: #FF6589;
+  color: white;
+  border: 2px solid #FF6589;
+}
+
+
+/* CloseBtn */
 .close-button {
   position: absolute;
   top: 16px;
@@ -103,7 +138,7 @@ button {
 }
 
 
-/* Header */
+/* ----- Header ----- */
 header {
   padding: 16px;
   background: #0018A4;
@@ -145,7 +180,7 @@ main {
   outline: none;
 }
 
-/* Filter Section */
+/* ----- Filter Section ----- */
 .recipe-filter-section {
   position: fixed;
   top: 0;
@@ -189,7 +224,7 @@ main {
   cursor: pointer;
 }
 
-/* .recipe-sort-section input[type="radio"], TA BORT SEN*/
+/* .sort-options input[type="radio"], TA BORT SEN*/
 .filter-options input[type="checkbox"] {
   opacity: 0;
   position: fixed;
@@ -211,50 +246,71 @@ main {
 
 
 /* --- Sort states --- */
-/* .recipe-sort-section {
+/* .sort-options {
   width: 100%;
   max-width: 400px;
 }
 
-.recipe-sort-section label {
+.sort-options label {
   background: #FFECEA;
   border: 2px solid #FFECEA;
 } */
 
-/* .recipe-sort-section input[type="radio"]:checked+label {
+/* .sort-options input[type="radio"]:checked+label {
   background: #FF6589;
   color: white;
   border-color: #FF6589;
 } */
 
-/* .recipe-sort-section input[type="radio"]:hover+label {
+/* .sort-options input[type="radio"]:hover+label {
   background: #FF6589;
   color: white;
   border-color: #0018A4;
 } */
 
-/* Count and sorting section */
+/* ----- Count and sorting section ----- */
 .recipe-count-sort {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between
+  justify-content: space-between;
+  position: relative;
 }
 
-.recipe-sort-section {
-  background: #FF6589;
-  display: none;
-}
-
-.recipe-sort-section ul {
+.sort-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 16px;
-  ;
+  align-items: flex-end;
+  position: relative;
 }
 
-/* Recipe Card */
+.sort-options {
+  display: none;
+  background: white;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 9;
+  width: 200px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sort-options.show {
+  display: block;
+}
+
+.sort-options li {
+  height: 40px;
+  margin: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  gap: 4px
+}
+
+
+/* ----- Recipe Card ----- */
 .recipe-card-section {
   display: flex;
   flex-direction: row;
@@ -275,9 +331,6 @@ main {
   cursor: pointer;
 }
 
-/* .recipe-data {
-  padding: 0 16px;
-} */
 
 .recipe-card:hover {
   border: 2px solid #0018A4;

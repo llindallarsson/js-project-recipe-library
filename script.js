@@ -6,7 +6,7 @@ const randomRecipeButton = document.querySelector('.random-recipe-button');
 const favoriteRecipeButton = document.getElementById('favorite-recipe-button');
 const searchBar = document.querySelector('.search-input');
 const sortButton = document.querySelector('.sort-button');
-const sortOptions = document.querySelector('.recipe-sort-section');
+const sortOptions = document.querySelector('.sort-options');
 const filterCuisine = document.getElementById('filter-cuisine');
 const showFilterButton = document.getElementById('filter-button');
 const filterSection = document.querySelector('.recipe-filter-section');
@@ -44,6 +44,7 @@ const displayErrorMessage = (message, statusCode) => {
   if (statusCode === 402) {
     errorMessage.innerHTML = `
       <p>Oops! Looks like our recipe ingredients got lost in the digital kitchen. Please try again in a moment — we're cooking up a fix!</p>
+
     `;
   } else {
     errorMessage.innerHTML = `
@@ -194,6 +195,12 @@ const filterRecipes = () => {
     .filter(checkbox => checkbox.checked)
     .map(checkbox => checkbox.value);
 
+  if (selectedFilters.length > 0) {
+    showFilterButton.classList.add('active'); // Add 'active' class when filters are selected
+  } else {
+    showFilterButton.classList.remove('active'); // Remove 'active' class when no filters are selected
+  }
+
   let filteredRecipes = allRecipes;
 
   if (currentFilter === 'random') {
@@ -226,6 +233,9 @@ const sortRecipes = (recipes) => {
     } else if (sortValue === 'fewestIngredients') {
       recipes.sort((a, b) => a.extendedIngredients.length - b.extendedIngredients.length);
     }
+    sortButton.classList.add('active'); // Add 'active' class when a sort option is selected
+  } else {
+    sortButton.classList.remove('active');
   }
   return recipes
 };
