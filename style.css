@@ -33,7 +33,7 @@ h3 {
 }
 
 p {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 /* ----- Design elements ----- */
@@ -55,36 +55,41 @@ button {
   cursor: pointer;
   font-family: Futura, sans-serif;
   font-weight: 500;
+  font-size: 16px;
 }
 
 /* RandomBtn */
 .random-recipe-button {
   background: #CCFFE2;
   border: 2px solid #0018A4;
-  border-radius: 5px;
+  border-radius: 50px;
   width: 100%;
   padding: 16px;
-  font-family: futura, sans-serif;
   margin: 24px 0;
+}
+
+.random-recipe-button:hover,
+.random-recipe-button.active {
+  background: #0018A4;
+  color: white;
+  border: 2px solid #0018A4;
 }
 
 /* FavoriteBtn */
 .favorite-recipe-button {
-  background: #CCFFE2;
-  border: 2px solid #0018A4;
-  border-radius: 5px;
+  background: #FFECEA;
+  border: 2px solid #FFECEA;
+  color: #0018A4;
+  border-radius: 50px;
   width: auto;
   padding: 12px;
   font-family: futura, sans-serif;
 }
 
-.favorite-recipe-button:hover {
-  background: #FF6589;
-  color: white;
-}
-
+.favorite-recipe-button:hover,
 .favorite-recipe-button.active {
-  background: #0018A4;
+  background: #FF6589;
+  border: 2px solid #0018A4;
   color: white;
 }
 
@@ -97,6 +102,7 @@ button {
   margin: 4px;
   width: 40px;
   height: 40px;
+  font-size: 12px;
 }
 
 .filter-button:hover {
@@ -205,7 +211,7 @@ header {
 main {
   padding: 16px;
   width: 100%;
-  max-width: 1300px;
+  max-width: 1200px;
   display: flex;
   flex-direction: column;
   align-content: center;
@@ -309,9 +315,7 @@ main {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  /* Black with 50% opacity */
   z-index: 5;
-  /* Lower than the filter section but higher than the content */
   display: none;
 }
 
@@ -325,6 +329,7 @@ main {
   align-items: center;
   justify-content: space-between;
   position: relative;
+  margin: 16px 0;
 }
 
 .sort-container {
@@ -362,7 +367,6 @@ main {
 /* ----- Recipe Cards ----- */
 .recipe-card-section {
   display: flex;
-  flex-direction: row;
   flex-wrap: wrap;
   gap: 16px;
 }
@@ -371,11 +375,9 @@ main {
   border: 1px solid #E9E9E9;
   border-radius: 16px;
   background: #fff;
-  flex-basis: 250px;
-  flex-grow: 1;
-  flex-shrink: 1;
+  flex: 1 1 250px;
   min-width: 250px;
-  max-width: 550px;
+  max-width: 350px;
   height: auto;
   padding: 16px;
   cursor: pointer;
@@ -410,16 +412,22 @@ main {
     font-size: 32px;
   }
 
-  p {
-    font-size: 16px;
-  }
-
   header,
   main {
     padding: 24px;
   }
 
+  main h2 {
+    align-self: center;
+  }
+
+  .search-container {
+    max-width: 650px;
+    width: 100%;
+    align-self: center;
+  }
+
   .recipe-filter-section {
-    max-width: 400px;
+    max-width: 450px;
   }
 }

@@ -234,9 +234,9 @@ const recipeDisplay = {
     } else if (state.currentFilter === 'favorites') {
       filteredRecipes = state.allRecipes.filter(recipe => recipe.isLiked);
     } else if (selectedFilters.length > 0) {
-      // Fixed filtering logic to properly match selected cuisines
+
       filteredRecipes = state.allRecipes.filter(recipe => {
-        // Make sure cuisines exists and is an array
+
         if (!recipe.cuisines || !Array.isArray(recipe.cuisines)) {
           return false;
         }
@@ -295,12 +295,10 @@ const uiInteractions = {
     if (state.currentFilter === 'random') {
       state.currentFilter = 'all';
       elements.randomRecipeButton.classList.remove('active');
-      elements.randomRecipeButton.textContent = "Surprise me";
     } else {
       state.currentFilter = 'random';
       elements.randomRecipeButton.classList.add('active');
       elements.favoriteRecipeButton.classList.remove('active');
-      elements.randomRecipeButton.textContent = "Show All Recipes";
     }
     recipeDisplay.displayFilteredSortedRecipes();
   },
@@ -309,12 +307,10 @@ const uiInteractions = {
     if (state.currentFilter === 'favorites') {
       state.currentFilter = 'all';
       elements.favoriteRecipeButton.classList.remove('active');
-      elements.favoriteRecipeButton.textContent = "My Favorites Recipes";
     } else {
       state.currentFilter = 'favorites';
       elements.favoriteRecipeButton.classList.add('active');
       elements.randomRecipeButton.classList.remove('active');
-      elements.favoriteRecipeButton.textContent = "Show All Recipes";
     }
     recipeDisplay.displayFilteredSortedRecipes();
   },
@@ -387,23 +383,15 @@ const eventHandlers = {
 const setupEventListeners = () => {
   elements.filterCheckboxes.forEach(checkbox => {
     checkbox.addEventListener('change', () => {
-      // Remove this line that's causing the error:
-      // uiInteractions.resetFilterButtons();
 
-      // If you need to reset buttons when filters change, you can add that logic here
-      // For example, if you want to reset the random/favorites buttons when filters change:
       state.currentFilter = 'all';
       elements.randomRecipeButton.classList.remove('active');
-      elements.randomRecipeButton.textContent = "Surprise me";
       elements.favoriteRecipeButton.classList.remove('active');
-      elements.favoriteRecipeButton.textContent = "My Favorites Recipes";
 
-      // Then display filtered recipes
       recipeDisplay.displayFilteredSortedRecipes();
     });
   });
 
-  // Rest of your event listeners remain the same
   elements.sortRadioButtons.forEach(radioButton => {
     radioButton.addEventListener('change', recipeDisplay.displayFilteredSortedRecipes);
   });
