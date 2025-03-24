@@ -18,7 +18,8 @@ const elements = {
   sortOptions: document.querySelector('.sort-options'),
   showFilterButton: document.getElementById('filter-button'),
   filterSection: document.querySelector('.recipe-filter-section'),
-  loadingIndicator: document.createElement('div')
+  loadingIndicator: document.createElement('div'),
+  overlay: document.querySelector('.overlay')
 };
 
 // State
@@ -31,9 +32,8 @@ let state = {
 elements.loadingIndicator.classList.add('loading-indicator');
 elements.recipeSection.appendChild(elements.loadingIndicator);
 
-/**
- * Loading indicator functions
- */
+
+// Loading indicator functions
 const loadingIndicator = {
   show: () => {
     elements.loadingIndicator.style.display = 'block';
@@ -46,9 +46,7 @@ const loadingIndicator = {
   }
 };
 
-/**
- * Recipe utility functions
- */
+// Recipe utility functions
 const recipeUtils = {
   findFirstMatchingCuisine: (recipeCuisines) => {
     if (!recipeCuisines || recipeCuisines.length === 0) {
@@ -84,9 +82,7 @@ const recipeUtils = {
   }
 };
 
-/**
- * API and data handling functions
- */
+// API and data handling functions
 const dataService = {
   fetchRecipes: () => {
     const cachedRecipes = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -100,7 +96,7 @@ const dataService = {
     }
 
     loadingIndicator.show();
-    const url = `${BASE_URL}?number=15&apiKey=${API_KEY}&instructionsRequired=true&addRecipeInformation=true&fillIngredients=true&cuisine=${AVAILABLE_FILTERS.join(',')}`;
+    const url = `${BASE_URL}?number=40&apiKey=${API_KEY}&instructionsRequired=true&addRecipeInformation=true&fillIngredients=true&cuisine=${AVAILABLE_FILTERS.join(',')}`;
 
     fetch(url)
       .then((response) => {
@@ -155,9 +151,7 @@ const dataService = {
   }
 };
 
-/**
- * Recipe display functions
- */
+// Recipe display functions
 const recipeDisplay = {
   createRecipeCard: (recipeArray) => {
     elements.recipeSection.innerHTML = '';
@@ -240,9 +234,20 @@ const recipeDisplay = {
     } else if (state.currentFilter === 'favorites') {
       filteredRecipes = state.allRecipes.filter(recipe => recipe.isLiked);
     } else if (selectedFilters.length > 0) {
-      filteredRecipes = state.allRecipes.filter(recipe =>
-        recipe.cuisines.some(cuisine => selectedFilters.includes(cuisine))
-      );
+      // Fixed filtering logic to properly match selected cuisines
+      filteredRecipes = state.allRecipes.filter(recipe => {
+        // Make sure cuisines exists and is an array
+        if (!recipe.cuisines || !Array.isArray(recipe.cuisines)) {
+          return false;
+        }
+
+        // Case-insensitive comparison
+        const recipeCuisines = recipe.cuisines.map(c => c.toLowerCase());
+        const lowerCaseFilters = selectedFilters.map(f => f.toLowerCase());
+
+        return recipeCuisines.some(cuisine =>
+          lowerCaseFilters.includes(cuisine));
+      });
     }
 
     return filteredRecipes;
@@ -271,7 +276,7 @@ const recipeDisplay = {
 
   displayFilteredSortedRecipes: () => {
     const filteredRecipes = recipeDisplay.filterRecipes();
-    const sortedRecipes = recipeDisplay.sortRecipes([...filteredRecipes]); // Create a copy to avoid modifying original
+    const sortedRecipes = recipeDisplay.sortRecipes([...filteredRecipes]);
     recipeDisplay.createRecipeCard(sortedRecipes);
   },
 
@@ -284,9 +289,7 @@ const recipeDisplay = {
   }
 };
 
-/**
- * UI interaction handlers
- */
+// UI interaction handlers
 const uiInteractions = {
   showRandomRecipe: () => {
     if (state.currentFilter === 'random') {
@@ -322,6 +325,7 @@ const uiInteractions = {
 
   toggleFilterSection: () => {
     elements.filterSection.classList.toggle('open');
+    elements.overlay.classList.toggle('active');
 
     if (elements.filterSection.classList.contains('open')) {
       const closeButton = document.createElement('button');
@@ -336,6 +340,7 @@ const uiInteractions = {
 
   closeFilterSection: () => {
     elements.filterSection.classList.remove('open');
+    elements.overlay.classList.remove('active');
     const closeButton = elements.filterSection.querySelector('.close-button');
     if (closeButton) {
       closeButton.remove();
@@ -343,17 +348,14 @@ const uiInteractions = {
   },
 
   resetFilterButtons: () => {
-    state.currentFilter = 'all';
-    elements.randomRecipeButton.classList.remove('active');
-    elements.favoriteRecipeButton.classList.remove('active');
-    elements.randomRecipeButton.textContent = "Surprise me";
-    elements.favoriteRecipeButton.textContent = "My favorites recipes";
+    elements.filterCheckboxes.forEach(checkbox => {
+      checkbox.checked = false;
+    });
+    elements.showFilterButton.classList.remove('active');
   }
-};
+}
 
-/**
- * Event handlers
- */
+// Event handlers
 const eventHandlers = {
   handleLikeClick: (recipeIndex, event) => {
     event.stopPropagation();
@@ -381,17 +383,27 @@ const eventHandlers = {
   }
 };
 
-/**
- * Set up event listeners
- */
+// Set up event listeners
 const setupEventListeners = () => {
   elements.filterCheckboxes.forEach(checkbox => {
     checkbox.addEventListener('change', () => {
-      uiInteractions.resetFilterButtons();
+      // Remove this line that's causing the error:
+      // uiInteractions.resetFilterButtons();
+
+      // If you need to reset buttons when filters change, you can add that logic here
+      // For example, if you want to reset the random/favorites buttons when filters change:
+      state.currentFilter = 'all';
+      elements.randomRecipeButton.classList.remove('active');
+      elements.randomRecipeButton.textContent = "Surprise me";
+      elements.favoriteRecipeButton.classList.remove('active');
+      elements.favoriteRecipeButton.textContent = "My Favorites Recipes";
+
+      // Then display filtered recipes
       recipeDisplay.displayFilteredSortedRecipes();
     });
   });
 
+  // Rest of your event listeners remain the same
   elements.sortRadioButtons.forEach(radioButton => {
     radioButton.addEventListener('change', recipeDisplay.displayFilteredSortedRecipes);
   });
@@ -401,11 +413,10 @@ const setupEventListeners = () => {
   elements.searchBar.addEventListener('input', recipeDisplay.searchRecipes);
   elements.sortButton.addEventListener('click', uiInteractions.toggleSortOptions);
   elements.showFilterButton.addEventListener('click', uiInteractions.toggleFilterSection);
+  elements.overlay.addEventListener('click', uiInteractions.closeFilterSection);
 };
 
-/**
- * Initialize application
- */
+// Initialize application
 const init = () => {
   setupEventListeners();
   dataService.fetchRecipes();

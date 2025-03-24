@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: futura, sans-serif;
   padding: 0;
@@ -239,8 +243,7 @@ main {
   position: fixed;
   top: 0;
   right: -100%;
-  width: 100%;
-  max-width: 400px;
+  max-width: 100%;
   height: 100%;
   background-color: white;
   z-index: 10;
@@ -296,6 +299,24 @@ main {
   background: #0018A4;
   color: white;
   border-color: #0018A4;
+}
+
+/* Overlay when filter section is active */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  /* Black with 50% opacity */
+  z-index: 5;
+  /* Lower than the filter section but higher than the content */
+  display: none;
+}
+
+.overlay.active {
+  display: block;
 }
 
 /* ----- Count and sorting section ----- */
@@ -396,5 +417,9 @@ main {
   header,
   main {
     padding: 24px;
+  }
+
+  .recipe-filter-section {
+    max-width: 400px;
   }
 }

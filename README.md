@@ -6,11 +6,13 @@ link to netlify: recipelibrary-lindal.netlify.app
 Att göra sista rycket: 
 [X] Fixa ett meddelande som visas på skärm när vi nått max antal hämtningar av recept
 [X] Fixa CSS för Sort recipes
-[] Lägg till loading state medans recept hämtas
+[X] Lägg till loading state medans recept hämtas
 [] Fixa ett state när inte får träffar från sök-baren
-[] Responsiv desing
-[] Fixa storlek på olika headings
-[] STÄDA ALL KOD, we <3 CLEAN CODE
+[X] Responsiv desing
+[X] Fixa storlek på olika headings
+[X] STÄDA ALL KOD CSS
+[X] STÄDA ALL KOD HTML
+[X] STÄDA ALL KOD JS
 [] Lägg till ett till filter alternativ (typ vegan osv)
 
 OM tid finnses
